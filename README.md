@@ -32,7 +32,7 @@ java DollarRecognizer
 - First application version adequately running on a Java environment.
 - Blank canvas shown when executed.
 - User can draw in the canvas with their mouse, and the strokes will be displayed accordingly.
-- Includes a Clear 
+- Includes a Clear button that cleans the screen for the user.
 
 ## License
 MIT
