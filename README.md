@@ -3,12 +3,13 @@
 ### CIS6930: HCIRA
 
 # Introduction
-We present our implementation of the $1 Recognizer, based on the work done by [Wobbrock, Wilson and Li][recognizer].
+We present our implementation of the $1 Recognizer, based on the work done by Wobbrock, Wilson and Li.
 In this Part 1, we show a blank canvas that can capture strokes, which also includes a button to clear the screen.
 
 # System
 The application was developed using the Java language, specifically with the Java Standard Edition 18 SDK. 
 Implementation was done in Microsoft Visual Studio Code, which is a simple but powerful solution that supports all the necessary IDE features that our team requires for this particular endeavor.
+We use a Github repository for source code version control.
 
 # User Guide
 - The user can click with his mouse anywhere inside the canvas, and the system will capture the mouse press and start drawing.
@@ -59,5 +60,3 @@ Generates the button that can clear the screen when clicked by the user, and loc
 # License
 MIT
 
-
-  [recognizer]: <(https://depts.washington.edu/acelab/proj/dollar/index.html#:~:text=The%20%241%20Unistroke%20Recognizer%20is,i.e.%2C%20a%20geometric%20template%20matcher)>
