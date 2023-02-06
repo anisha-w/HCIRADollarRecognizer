@@ -9,9 +9,9 @@ import java.awt.event.*;
 //Class that creates the canvas panel which will be used to draw the gesture
 class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
 {
-
     private boolean userIsStroking;
     private int initX, initY, newX, newY;
+    public Point[] canvasPoints;
     public Point[] capturedPoints;
     public int pCnt;
 
@@ -28,11 +28,11 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
     public void mousePressed(MouseEvent e)
     {
         Graphics2D graphics = (Graphics2D)getGraphics();
-        capturedPoints = new Point[10000];
+        canvasPoints = new Point[10000];
         pCnt = 0;
         initX = newX = e.getX();
         initY = newY = e.getY();
-        capturedPoints[pCnt] = new Point(newX, newY);
+        canvasPoints[pCnt] = new Point(newX, newY);
         pCnt++;
         graphics.setColor(Color.RED);
         graphics.setStroke(new BasicStroke(10));
@@ -49,12 +49,12 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
             newX = e.getX();
             newY = e.getY();
             if (pCnt < 10000) {
-                capturedPoints[pCnt] = new Point(newX, newY);
+                canvasPoints[pCnt] = new Point(newX, newY);
                 pCnt++;
             } 
             else
             {
-                System.out.println("Too many points!");
+                System.out.println("Too many canvasPoints!");
             }
             Graphics2D graphics = (Graphics2D)getGraphics();
             graphics.setColor(Color.WHITE);
@@ -68,9 +68,20 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
     //Action on mouse released    
     public void mouseReleased(MouseEvent e){
         userIsStroking = false;
-        // print to console the list of points
+        capturedPoints = new Point[pCnt];
+
+        //Create new array of capturedPoints that is the actual size as the number of points captured
         for (int i = 0; i < pCnt; i++) {
-            System.out.println(capturedPoints[i].x + " " + capturedPoints[i].y);
+            capturedPoints[i] = new Point(canvasPoints[i].x, canvasPoints[i].y);
+        }
+        
+        Point[] resampledPoints = resample(capturedPoints, 64);
+
+        // print lenght of resampledPoints
+        System.out.println("resampledPoints.length = " + resampledPoints.length);
+        // print to console the list of resampledPoints
+        for (int i = 0; i < 64; i++) {
+            System.out.println("i:" + i + ", " + resampledPoints[i].x + "," + resampledPoints[i].y);
         }
     }
 
@@ -82,15 +93,62 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
  
     public void mouseClicked(MouseEvent e){}
 
+    public Point[] resample(Point[] capturedPoints, int n)
+    {
+        // print lenght of capturedPoints
+        System.out.println("capturedPoints.length = " + capturedPoints.length);
+
+        double I = pathLength(capturedPoints) / (n - 1);
+        double D = 0.0;
+
+        Point[] resampledPoints = new Point[n];
+        resampledPoints[0] = new Point(capturedPoints[0].x, capturedPoints[0].y);
+        int i = 1;
+        for (int j = 1; j < capturedPoints.length; j++) {
+            double d = distance(capturedPoints[j - 1], capturedPoints[j]);
+            if ((D + d) >= I) {
+                double qx = capturedPoints[j - 1].x + ((I - D) / d) * (capturedPoints[j].x - capturedPoints[j - 1].x);
+                double qy = capturedPoints[j - 1].y + ((I - D) / d) * (capturedPoints[j].y - capturedPoints[j - 1].y);
+                Point q = new Point((int)qx, (int)qy);
+                resampledPoints[i] = q;
+                capturedPoints[j] = q;
+                D = 0.0;
+                i++;
+            } else {
+                D += d;
+            }
+        }
+        if (i == n - 1) {
+            resampledPoints[n - 1] = new Point(capturedPoints[capturedPoints.length - 1].x, capturedPoints[capturedPoints.length - 1].y);
+        }
+        return resampledPoints;
+    }
+
+    public double pathLength(Point[] capturedPoints)
+    {
+        double d = 0.0;
+        for (int i = 1; i < capturedPoints.length; i++) {
+            System.out.println("i = " + i);
+            d += distance(capturedPoints[i - 1], capturedPoints[i]);
+        }
+        return d;
+    }
+
+    public double distance(Point a, Point b)
+    {
+        double dx = b.x - a.x;
+        double dy = b.y - a.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
 }
 
 class UnistrokeTemplate{
     public String name;
-    public Point[] points;
-    UnistrokeTemplate(String name, Point[] points)
+    public Point[] capturedPoints;
+    UnistrokeTemplate(String name, Point[] capturedPoints)
     {
         this.name = name;
-        this.points = points;
+        this.capturedPoints = capturedPoints;
     }
 }
 
