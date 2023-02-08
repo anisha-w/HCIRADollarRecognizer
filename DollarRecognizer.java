@@ -4,6 +4,7 @@
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.awt.event.*;
 import java.util.*;
 
@@ -12,8 +13,9 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
 {
     private boolean userIsStroking;
     private int initX, initY, newX, newY;
-    //public ArrayList<Point> canvasPoints;
     public ArrayList<Point> capturedPoints;
+    public ArrayList<Point> processedPoints;
+    JLabel resultLabel = new JLabel();
 
     //Set all canvas parameters at initialization
     CanvasPanel(){
@@ -22,6 +24,12 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
         setVisible(true);
         addMouseListener(this);
         addMouseMotionListener(this);
+        resultLabel.setBackground(Color.WHITE);
+        resultLabel.setForeground(Color.PINK);
+        resultLabel.setBounds(50, 50, 800, 50);
+        add(resultLabel);
+        validate();
+
     }
 
     //Action on mouse pressed
@@ -36,6 +44,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
         graphics.setStroke(new BasicStroke(10));
         graphics.drawLine(initX, initY, newX, newY);
         userIsStroking = true;
+        resultLabel.setText("");
         // System.out.println("Mouse Clicked at "+x+" "+y);
         
     }
@@ -60,16 +69,17 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
     public void mouseReleased(MouseEvent e){
         userIsStroking = false;
         
-        ArrayList<Point> resampledPoints = resample(capturedPoints, 64);
+        GestureRecognizer.setCanvasWindow(this);
+        processedPoints = GestureRecognizer.processingGesture(capturedPoints);
 
-        // print lenght of resampledPoints
-        System.out.println("resampledPoints.length = " + resampledPoints.size());
-        // print to console the list of resampledPoints
-        for (int i = 0; i < 64; i++) {
-            System.out.println("i:" + i + ", " + resampledPoints.get(i).x + "," + resampledPoints.get(i).y);
-        }
+        HashMap<String,Object> result = GestureRecognizer.recognize(processedPoints,DollarRecognizer.templates); // no need to pass points to the function. 
+
+        UnistrokeTemplate resultTemplate = (UnistrokeTemplate) result.get("TEMPLATE");
+        System.out.println("Score: " + result.get("SCORE") + " Template : " + resultTemplate.name);
+
+        resultLabel.setText(" Template : " + resultTemplate.name + " | Score: " + result.get("SCORE") );
     }
-
+    
     public void mouseMoved(MouseEvent e){}
  
     public void mouseExited(MouseEvent e){}
@@ -78,46 +88,229 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
  
     public void mouseClicked(MouseEvent e){}
 
-    public ArrayList<Point> resample(ArrayList<Point> capturedPoints, int n)
-    {
-        // print lenght of capturedPoints
-        System.out.println("capturedPoints.length = " + capturedPoints.size());
+    public void plotPoints(ArrayList<Point> points, Color c){
+        Graphics2D graphics = (Graphics2D)getGraphics();
+        graphics.setColor(c);
+        for (Point point : points) {
+            graphics.fillOval(point.x, point.y, 5, 5);
+        }
+    }
+}
 
+class GestureRecognizer{
+
+    static int n = 64;
+    static int size = 200;
+    static double phi = (-1 + Math.sqrt(5))/2;  
+
+    static CanvasPanel canvasWindow;
+
+    static public void setCanvasWindow(CanvasPanel canvas) {
+        canvasWindow = canvas;
+    }
+    static public ArrayList<Point> processingGesture(ArrayList<Point> capturedPoints) {
+
+        ArrayList<Point> resampledPoints = resample(capturedPoints);
+        //canvasWindow.plotPoints(resampledPoints,Color.ORANGE);
+
+        ArrayList<Point> rotatedPoints = rotateToZero(resampledPoints);
+        // canvasWindow.plotPoints(rotatedPoints,Color.RED);
+
+        ArrayList<Point> scaledPoints = scaleToSquare(rotatedPoints,200);
+        // canvasWindow.plotPoints(scaledPoints,Color.GREEN);
+
+        ArrayList<Point> translatedPoints = translateToOrigin(scaledPoints);
+        // canvasWindow.plotPoints(translatedPoints,Color.GRAY);
+
+        return translatedPoints;
+    }
+
+    //STEP 1 : RESAMPLE
+    static public ArrayList<Point> resample(ArrayList<Point> capturedPoints)
+    {
+        
         double I = pathLength(capturedPoints) / (n - 1);
+        // System.out.println("increment "+I);
         double D = 0.0;
 
         ArrayList<Point> resampledPoints = new ArrayList<>();
-        resampledPoints.add(new Point(capturedPoints.get(0).x, capturedPoints.get(0).y));
-        for (int j = 1; j < capturedPoints.size(); j++) {
-            double d = distance(capturedPoints.get(j - 1), capturedPoints.get(j));
+        ArrayList<Point2D.Double> pointsDouble = new ArrayList<>(){
+            {for(Point pt : capturedPoints)
+                add(new Point2D.Double(pt.getX(), pt.getY()));}
+        };
+
+        resampledPoints.add(new Point(capturedPoints.get(0).x, capturedPoints.get(0).y)); // adding 0th point to result point list
+
+        for (int j = 1; j < pointsDouble.size(); j++) {
+            double d = distance(pointsDouble.get(j - 1), pointsDouble.get(j));
             if ((D + d) >= I) {
-                double qx = capturedPoints.get(j - 1).x + ((I - D) / d) * (capturedPoints.get(j).x - capturedPoints.get(j - 1).x);
-                double qy = capturedPoints.get(j - 1).y + ((I - D) / d) * (capturedPoints.get(j).y - capturedPoints.get(j - 1).y);
-                Point q = new Point((int)qx, (int)qy);
+                double qx = pointsDouble.get(j - 1).x + ((I - D) / d) * (pointsDouble.get(j).x - pointsDouble.get(j - 1).x);
+                double qy = pointsDouble.get(j - 1).y + ((I - D) / d) * (pointsDouble.get(j).y - pointsDouble.get(j - 1).y);
+                Point q = new Point((int)Math.round(qx), (int)Math.round(qy));
                 resampledPoints.add(q);
-                capturedPoints.add(j,q); 
+                pointsDouble.add(j,new Point2D.Double(qx,qy)); 
                 D = 0.0;
             } else {
                 D += d;
             }
         }
-        if (resampledPoints.size() == n - 1) { // Check if needed
-            resampledPoints.set(n-1,new Point(capturedPoints.get(capturedPoints.size() - 1).x, capturedPoints.get(capturedPoints.size() - 1).y));
+        if (resampledPoints.size() == n - 1) { // for the last point
+            resampledPoints.add(new Point(capturedPoints.get(capturedPoints.size() - 1).x, capturedPoints.get(capturedPoints.size() - 1).y));
         }
         return resampledPoints;
     }
 
-    public double pathLength(ArrayList<Point> capturedPoints)
+    static public double pathLength(ArrayList<Point> capturedPoints)
     {
         double d = 0.0;
         for (int i = 1; i < capturedPoints.size(); i++) {
-            System.out.println("i = " + i);
             d += distance(capturedPoints.get(i - 1), capturedPoints.get(i));
         }
         return d;
     }
 
-    public double distance(Point a, Point b)
+    static public double distance(Point2D.Double a, Point2D.Double b)
+    {
+        double dx = b.x - a.x;
+        double dy = b.y - a.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    //STEP 2 : ROTATE 
+    static public ArrayList<Point> rotateToZero(ArrayList<Point> capturedPoints){
+        Point centroidPt = centroid(capturedPoints);
+        double angleTheta = (double) Math.atan2((capturedPoints.get(0).y - centroidPt.y),(capturedPoints.get(0).x - centroidPt.x));
+        return rotateAllPoints(capturedPoints,-angleTheta);
+    }
+    
+    static public ArrayList<Point> rotateAllPoints(ArrayList<Point> capturedPoints, double angleTheta){
+        Point centroidPt = centroid(capturedPoints);
+        ArrayList<Point> rotatedPoints = new ArrayList<>();
+        double xPt,yPt;
+        for (Point point : capturedPoints) {
+            xPt = ((double)point.x - centroidPt.x) * Math.cos(angleTheta) - ((double)point.y - centroidPt.y)*Math.sin(angleTheta) + centroidPt.x;
+            yPt = ((double)point.x - centroidPt.x) * Math.sin(angleTheta) + ((double)point.y - centroidPt.y)*Math.cos(angleTheta) + centroidPt.x;
+            rotatedPoints.add(new Point((int)xPt,(int)yPt));
+        }
+        return rotatedPoints;
+
+    }
+
+    static public Point centroid(ArrayList<Point> capturedPoints){
+        int centroidX=0, centroidY=0;
+        for (Point point : capturedPoints) {
+            centroidX+=point.x;
+            centroidY+=point.y;
+        }
+        return new Point(centroidX/capturedPoints.size(),centroidY/capturedPoints.size());
+    }
+
+    //STEP 3 : SCALE AND TRANSLATE 
+
+    static public ArrayList<Point> scaleToSquare(ArrayList<Point> capturedPoints, int size){
+        ArrayList<Point> scaledPoints = new ArrayList<>();
+        int boundingBox[] = findBoundingBox(capturedPoints);
+        int qx,qy;
+        for (Point point : capturedPoints) {
+            qx = (int)((double)point.x * ((double)size/boundingBox[0]));
+            qy = (int)((double)point.y * ((double)size/boundingBox[1]));
+            scaledPoints.add(new Point(qx,qy));
+        }
+        return scaledPoints;
+    }
+
+    static public int[] findBoundingBox(ArrayList<Point> points){
+        int xMin = points.get(0).x;
+        int yMin= points.get(0).y;
+        int xMax = points.get(0).x;
+        int yMax= points.get(0).y;
+
+        for (Point point : points) {
+            if(point.x>xMax)
+                xMax = point.x;
+            if(point.x<xMin)
+                xMin = point.x;
+            if(point.y>yMax)
+                yMax = point.y;
+            if(point.y<yMin)
+                yMin = point.y;
+        }
+        return new int[]{xMax-xMin,yMax-yMin};
+    }
+
+    static public ArrayList<Point> translateToOrigin(ArrayList<Point> capturedPoints){
+        ArrayList<Point> translatedPoints = new ArrayList<>();
+        int qx,qy;
+
+        Point centroidPt = centroid(capturedPoints);
+        for (Point point : capturedPoints) {
+            qx = point.x - centroidPt.x;
+            qy = point.y - centroidPt.y;
+            translatedPoints.add(new Point(qx,qy));
+        }
+        return translatedPoints;
+    }
+
+    //STEP 4 : RECOGNIZE
+
+    static public HashMap<String,Object> recognize(ArrayList<Point> processedPoints, UnistrokeTemplate templates[]){
+        double b = Double.MAX_VALUE; 
+        UnistrokeTemplate templateMatched = new UnistrokeTemplate(null, null);
+        double distance;
+        for (UnistrokeTemplate unistrokeTemplate : templates) {
+            distance = distanceAtBestAngle(processedPoints,unistrokeTemplate,45,-45,2); //angles in degrees
+            if(distance < b){
+                b = distance;
+                templateMatched = unistrokeTemplate;
+            }
+        }
+        double score = (double)1 - (b / (0.5 * Math.sqrt(size*size + size*size)));
+
+        HashMap<String, Object> hm = new HashMap<>();
+        hm.put("SCORE", Double.valueOf(score));
+        hm.put("TEMPLATE", (UnistrokeTemplate) templateMatched);
+
+        return hm;
+    }
+
+    static public double distanceAtBestAngle(ArrayList<Point> points, UnistrokeTemplate template, double thetaA, double thetaB, double thetaDiff ){ // angle in degrees
+        double x1 = phi * thetaA + (1 - phi) * thetaB;
+        double f1 = distanceAtAngle(points,template,x1);
+        double x2 = (1 - phi) * thetaA + phi * thetaB;
+        double f2 = distanceAtAngle(points,template,x2);
+        while(Math.abs(thetaB - thetaA) > thetaDiff){
+            if (f1<f2){
+                thetaB = x2;
+                x2 = x1;
+                f2 = f1;
+                x1 = phi * thetaA + (1 - phi) * thetaB;
+                f1 = distanceAtAngle(points,template,x1);
+            }
+            else{
+                thetaA = x1;
+                x1 = x2;
+                f1 = f2;
+                x2 =  (1 - phi) * thetaA + phi * thetaB;
+                f2 = distanceAtAngle(points,template,x2);
+            }
+        }
+        return Math.min(f1,f2);
+    }
+    
+    static public double distanceAtAngle(ArrayList<Point> points, UnistrokeTemplate template, double theta){
+        ArrayList<Point> rotatedPoints = rotateAllPoints(points, Math.toRadians(theta));
+        return pathDistance(rotatedPoints,template.processedPoints);
+    }
+
+    static public double pathDistance(ArrayList<Point> points, ArrayList<Point> templatePoints){
+        double d = 0.0;
+        for(int i =0; i< points.size();i++){
+            d = d + distance(points.get(i), templatePoints.get(i));
+        }
+        return d / points.size();
+
+    }
+    static public double distance(Point a, Point b)
     {
         double dx = b.x - a.x;
         double dy = b.y - a.y;
@@ -128,10 +321,13 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
 class UnistrokeTemplate{
     public String name;
     public ArrayList<Point> capturedPoints;
+    public ArrayList<Point> processedPoints;
     UnistrokeTemplate(String name, ArrayList<Point> capturedPoints)
     {
         this.name = name;
         this.capturedPoints = capturedPoints;
+        processedPoints = new ArrayList<>();
+        
     }
 }
 
@@ -139,12 +335,12 @@ class UnistrokeTemplate{
 class DollarRecognizer{
     JFrame homeFrame;
     CanvasPanel canvasWindow;
-    UnistrokeTemplate[] templates = new UnistrokeTemplate[16];
+    static UnistrokeTemplate[] templates = new UnistrokeTemplate[16];
     
     DollarRecognizer()
     {
         homeFrame=new JFrame("$1 Recognizer");
-        generateTemplates();
+        
         setButtons();
         setCanvasPanel();
         homeFrame.setSize(800,600);
@@ -153,6 +349,13 @@ class DollarRecognizer{
         homeFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         homeFrame.setLocation(dim.width/2 - 400, dim.height/2 - 300);
+
+        generateTemplates();
+        GestureRecognizer.setCanvasWindow(canvasWindow);
+        for (UnistrokeTemplate unistrokeTemplate : templates) {
+            unistrokeTemplate.processedPoints = GestureRecognizer.processingGesture(unistrokeTemplate.capturedPoints);
+        }
+        
         
     }
 
@@ -189,12 +392,16 @@ class DollarRecognizer{
         clearBtn.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){  
                         canvasWindow.repaint();  
+                        ((JLabel)canvasWindow.getComponent(0)).setText("");
+                        homeFrame.setLayout(null);
                     }  
                 });  
+            
         homeFrame.add(clearBtn);
     }
 
     public static void main(String args[]){
         new DollarRecognizer();
+
     }
 }
