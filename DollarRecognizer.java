@@ -15,7 +15,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
     private int initX, initY, newX, newY;
     public ArrayList<Point> capturedPoints;
     public ArrayList<Point> processedPoints;
-    JLabel resultLabel = new JLabel();
+    JLabel resultLabel;
 
     //Set all canvas parameters at initialization
     CanvasPanel(){
@@ -24,11 +24,15 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
         setVisible(true);
         addMouseListener(this);
         addMouseMotionListener(this);
-        resultLabel.setBackground(Color.WHITE);
+
+        resultLabel = new JLabel("",SwingConstants.CENTER);
+        //resultLabel.setBackground(Color.WHITE);
+        //resultLabel.setOpaque(true);
         resultLabel.setForeground(Color.PINK);
-        resultLabel.setBounds(50, 50, 800, 50);
+        resultLabel.setBounds(0, 0, 800, 50);
         add(resultLabel);
-        validate();
+        setLayout(null);
+        //validate();
 
     }
 
@@ -70,12 +74,13 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
         userIsStroking = false;
         
         GestureRecognizer.setCanvasWindow(this);
+
         processedPoints = GestureRecognizer.processingGesture(capturedPoints);
 
         HashMap<String,Object> result = GestureRecognizer.recognize(processedPoints,DollarRecognizer.templates); // no need to pass points to the function. 
 
         UnistrokeTemplate resultTemplate = (UnistrokeTemplate) result.get("TEMPLATE");
-        System.out.println("Score: " + result.get("SCORE") + " Template : " + resultTemplate.name);
+        //System.out.println("Score: " + result.get("SCORE") + " Template : " + resultTemplate.name);
 
         resultLabel.setText(" Template : " + resultTemplate.name + " | Score: " + result.get("SCORE") );
     }
@@ -94,6 +99,10 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
         for (Point point : points) {
             graphics.fillOval(point.x, point.y, 5, 5);
         }
+    }
+
+    public void clearLabel(){
+        resultLabel.setText("");
     }
 }
 
@@ -273,7 +282,8 @@ class GestureRecognizer{
         return hm;
     }
 
-    static public double distanceAtBestAngle(ArrayList<Point> points, UnistrokeTemplate template, double thetaA, double thetaB, double thetaDiff ){ // angle in degrees
+    // angle in degrees
+    static public double distanceAtBestAngle(ArrayList<Point> points, UnistrokeTemplate template, double thetaA, double thetaB, double thetaDiff ){ 
         double x1 = phi * thetaA + (1 - phi) * thetaB;
         double f1 = distanceAtAngle(points,template,x1);
         double x2 = (1 - phi) * thetaA + phi * thetaB;
@@ -359,6 +369,7 @@ class DollarRecognizer{
         
     }
 
+    //Templates taken from JavaScript 
     void generateTemplates()
     {
         templates[0] = new UnistrokeTemplate("triangle", new ArrayList<Point>(Arrays.asList(new Point(137,139),new Point(135,141),new Point(133,144),new Point(132,146),new Point(130,149),new Point(128,151),new Point(126,155),new Point(123,160),new Point(120,166),new Point(116,171),new Point(112,177),new Point(107,183),new Point(102,188),new Point(100,191),new Point(95,195),new Point(90,199),new Point(86,203),new Point(82,206),new Point(80,209),new Point(75,213),new Point(73,213),new Point(70,216),new Point(67,219),new Point(64,221),new Point(61,223),new Point(60,225),new Point(62,226),new Point(65,225),new Point(67,226),new Point(74,226),new Point(77,227),new Point(85,229),new Point(91,230),new Point(99,231),new Point(108,232),new Point(116,233),new Point(125,233),new Point(134,234),new Point(145,233),new Point(153,232),new Point(160,233),new Point(170,234),new Point(177,235),new Point(179,236),new Point(186,237),new Point(193,238),new Point(198,239),new Point(200,237),new Point(202,239),new Point(204,238),new Point(206,234),new Point(205,230),new Point(202,222),new Point(197,216),new Point(192,207),new Point(186,198),new Point(179,189),new Point(174,183),new Point(170,178),new Point(164,171),new Point(161,168),new Point(154,160),new Point(148,155),new Point(143,150),new Point(138,148),new Point(136,148))));
@@ -389,11 +400,14 @@ class DollarRecognizer{
     {
         JButton clearBtn = new JButton("Clear");
         clearBtn.setBounds(350,500,100, 40);
+
         clearBtn.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){  
-                        canvasWindow.repaint();  
-                        ((JLabel)canvasWindow.getComponent(0)).setText("");
-                        homeFrame.setLayout(null);
+                        canvasWindow.repaint();
+                        canvasWindow.clearLabel();  
+                        //System.out.println(((JLabel)canvasWindow.getComponent(0)).getText());
+                        //((JLabel)canvasWindow.getComponent(0)).setText("");
+                        //homeFrame.setLayout(null);
                     }  
                 });  
             
