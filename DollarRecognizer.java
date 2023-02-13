@@ -1,7 +1,6 @@
 // CIS6930 Special Topics: Human-Centered Input Recognition Algorithms
 // $1 Recognizer implementation by Alexander Barquero and Anisha Wadhwani
 
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -215,7 +214,6 @@ class GestureRecognizer{
     }
 
     //STEP 3 : SCALE AND TRANSLATE 
-
     static public ArrayList<Point> scaleToSquare(ArrayList<Point> capturedPoints, int size){
         ArrayList<Point> scaledPoints = new ArrayList<>();
         int boundingBox[] = findBoundingBox(capturedPoints);
@@ -261,7 +259,6 @@ class GestureRecognizer{
     }
 
     //STEP 4 : RECOGNIZE
-
     static public HashMap<String,Object> recognize(ArrayList<Point> processedPoints, UnistrokeTemplate templates[]){
         double b = Double.MAX_VALUE; 
         UnistrokeTemplate templateMatched = new UnistrokeTemplate(null, null);
@@ -416,6 +413,5 @@ class DollarRecognizer{
 
     public static void main(String args[]){
         new DollarRecognizer();
-
     }
 }
