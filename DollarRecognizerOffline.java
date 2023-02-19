@@ -39,6 +39,91 @@ class UnistrokeGesture{
 
 }
 
+// Class to store the results from each recognition
+class SingleMatchResult
+{
+    public UnistrokeGesture templateGesture;
+    public double score;
+
+    // Constructor
+    SingleMatchResult(UnistrokeGesture templateGesture, double score){
+        this.templateGesture = templateGesture;
+        this.score = score;
+    }
+}
+
+class CandidateCompleteResults
+{
+    public UnistrokeGesture candidateGesture;
+    public ArrayList<SingleMatchResult> trainingSetResults;
+    public int randomIteration;
+    public int numberOfTrainingExamples;
+    public int totalSizeOfTrainingSet;
+
+    // Constructor
+    CandidateCompleteResults(UnistrokeGesture candidateGesture, ArrayList<SingleMatchResult> trainingSetResults){
+        this.candidateGesture = candidateGesture;
+        this.trainingSetResults = trainingSetResults;
+    }
+
+    // Method to order the SingleMatchResults by score
+    public void orderSingleMatchResults(){
+        Collections.sort(trainingSetResults, new Comparator<SingleMatchResult>() {
+            @Override
+            public int compare(SingleMatchResult o1, SingleMatchResult o2) {
+                return Double.compare(o1.score, o2.score);
+            }
+        });
+    }
+
+    // Method to generate a String with all the training set results, in the format {user1-gestureType1-repetition1,user2-gestureType2-repetition2,...}
+    public String generateTrainingSetResultsString(){
+        String trainingSetResultsString = "{";
+        for(int i=0;i<trainingSetResults.size();i++){
+            trainingSetResultsString += trainingSetResults.get(i).templateGesture.user + "-" + trainingSetResults.get(i).templateGesture.gestureType + "-" + trainingSetResults.get(i).templateGesture.repetition + ",";
+        }
+        trainingSetResultsString += "}";
+        return trainingSetResultsString;
+    }
+
+    // Method to generate a String with all the training set results and scores, in the format {user1-gestureType1-repetition1,score1,user2-gestureType2-repetition2,score2,...}
+    public String generateTrainingSetResultsWithScoresString(){
+        String trainingSetResultsString = "{";
+        for(int i=0;i<trainingSetResults.size();i++){
+            trainingSetResultsString += trainingSetResults.get(i).templateGesture.user + "-" + trainingSetResults.get(i).templateGesture.gestureType + "-" + trainingSetResults.get(i).templateGesture.repetition + "," + trainingSetResults.get(i).score + ",";
+        }
+        trainingSetResultsString += "}";
+        return trainingSetResultsString;
+    }
+
+    // Method to generate a String with the gesture data, in the format {user-gestureType-repetition}
+    public String generateGestureString(UnistrokeGesture gesture){
+        String gestureString = "{" + gesture.user + "-" + gesture.gestureType + "-" + gesture.repetition + "}";
+        return gestureString;
+    }
+
+    // Method to generate a String with the results of the recognition in CSV format
+    public String generateCSVString(){
+        String csvString = "";
+        UnistrokeGesture bestGesture = trainingSetResults.get(0).templateGesture;
+        int bestScore = (int)trainingSetResults.get(0).score;
+
+        int isCorrect = 0;
+        if (bestGesture.gestureType.equals(candidateGesture.gestureType)){
+            isCorrect = 1;
+        }
+
+        csvString += candidateGesture.user + "," + candidateGesture.gestureType + "," 
+        + candidateGesture.repetition + "," + randomIteration + "," + numberOfTrainingExamples + "," 
+        + totalSizeOfTrainingSet + "," + generateTrainingSetResultsString() + ","
+        + generateGestureString(candidateGesture) + "," + bestGesture.gestureType + "," + isCorrect + ","
+        + bestScore + "," + generateGestureString(bestGesture) + "," + generateTrainingSetResultsWithScoresString();
+
+        return csvString;
+    }
+}
+
+
 public class DollarRecognizerOffline {
 
     public static Hashtable<String, Integer> gestureTypes;
@@ -172,7 +257,7 @@ public class DollarRecognizerOffline {
         double totalAverageAccuracy = 0;
         double totalAccuracy = 0;
         double totalRepeats = 0;
-
+        ArrayList <SingleMatchResult> results = new ArrayList<>();
         ArrayList <String> resultLog = new ArrayList<>();
 
         // For each user
@@ -213,14 +298,13 @@ public class DollarRecognizerOffline {
                     for(int t=0;t<candidateGestures.size();t++)
                     {
                         UnistrokeGesture currentGesture = candidateGestures.get(t);
-                        HashMap<String,Object> result = GestureRecognizer.recognize(currentGesture.processedPoints, selectedTemplateGestures);
-                        UnistrokeTemplate resultTemplate = (UnistrokeTemplate) result.get("TEMPLATE");
-                        totalRepeats++;
-                        if (resultTemplate.name == currentGesture.gestureType) {
-                            totalAccuracy++;
+                        // Assuming that the result will be an ArrayList of Result objects which have:
+                        // 1. The UnistrokeGesture it scored against
+                        // 2. The score it got
+                        // The list will be ordered from highest to lowest score   
 
+                        //resultLog.add(GestureRecognizer.recognize(currentGesture.processedPoints, selectedTemplateGestures));
 
-                        }
                     }
                 }
             }
