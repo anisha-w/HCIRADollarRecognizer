@@ -1,5 +1,5 @@
 // CIS6930 Special Topics: Human-Centered Input Recognition Algorithms
-// $1 Recognizer implementation by Alexander Barquero and Anisha Wadhwani
+// $1 Online Recognizer implementation by Alexander Barquero and Anisha Wadhwani
 
 import javax.swing.*;
 import java.awt.*;
@@ -278,6 +278,28 @@ class GestureRecognizer{
 
         return hm;
     }
+
+    //STEP 4 : RECOGNIZE ARRAYLIST
+    static public HashMap<String,Object> recognize(ArrayList<Point> processedPoints, ArrayList<UnistrokeTemplate> templates){
+        double b = Double.MAX_VALUE; 
+        UnistrokeTemplate templateMatched = new UnistrokeTemplate(null, null);
+        double distance;
+        for (UnistrokeTemplate unistrokeTemplate : templates) {
+            distance = distanceAtBestAngle(processedPoints,unistrokeTemplate,45,-45,2); //angles in degrees
+            if(distance < b){
+                b = distance;
+                templateMatched = unistrokeTemplate;
+            }
+        }
+        double score = (double)1 - (b / (0.5 * Math.sqrt(size*size + size*size)));
+
+        HashMap<String, Object> hm = new HashMap<>();
+        hm.put("SCORE", Double.valueOf(score));
+        hm.put("TEMPLATE", (UnistrokeTemplate) templateMatched);
+
+        return hm;
+    }
+
 
     // angle in degrees
     static public double distanceAtBestAngle(ArrayList<Point> points, UnistrokeTemplate template, double thetaA, double thetaB, double thetaDiff ){ 
