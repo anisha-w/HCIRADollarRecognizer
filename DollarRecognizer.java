@@ -81,7 +81,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
         UnistrokeTemplate resultTemplate = (UnistrokeTemplate) result.get("TEMPLATE");
         //System.out.println("Score: " + result.get("SCORE") + " Template : " + resultTemplate.name);
 
-        resultLabel.setText(" Template : " + resultTemplate.name + " | Score: " + result.get("SCORE") );
+        resultLabel.setText(" Template : " + resultTemplate.gestureType + " | Score: " + result.get("SCORE") );
     }
     
     public void mouseMoved(MouseEvent e){}
@@ -281,21 +281,28 @@ class GestureRecognizer{
 
     //STEP 4 : RECOGNIZE ARRAYLIST
     static public HashMap<String,Object> recognize(ArrayList<Point> processedPoints, ArrayList<UnistrokeTemplate> templates){
-        double b = Double.MAX_VALUE; 
+        
+        ArrayList<SingleMatchResult> nBestList = new ArrayList<>(); // adding nbest list
+        double b = Double.MAX_VALUE; // keep track of the smallest distance for highest matching template. 
         UnistrokeTemplate templateMatched = new UnistrokeTemplate(null, null);
-        double distance;
+        double distance,score;
         for (UnistrokeTemplate unistrokeTemplate : templates) {
             distance = distanceAtBestAngle(processedPoints,unistrokeTemplate,45,-45,2); //angles in degrees
+            score = (double)1 - (b / (0.5 * Math.sqrt(size*size + size*size)));
+
+            nBestList.add(new SingleMatchResult(unistrokeTemplate, score));
             if(distance < b){
                 b = distance;
                 templateMatched = unistrokeTemplate;
             }
         }
-        double score = (double)1 - (b / (0.5 * Math.sqrt(size*size + size*size)));
+        score = (double)1 - (b / (0.5 * Math.sqrt(size*size + size*size)));
 
         HashMap<String, Object> hm = new HashMap<>();
         hm.put("SCORE", Double.valueOf(score));
         hm.put("TEMPLATE", (UnistrokeTemplate) templateMatched);
+
+        hm.put("N-BEST",nBestList);
 
         return hm;
     }
@@ -347,16 +354,50 @@ class GestureRecognizer{
     }
 }
 
+
 class UnistrokeTemplate{
-    public String name;
+    public String gestureType; // renamed symbol name to gestureType 
     public ArrayList<Point> capturedPoints;
     public ArrayList<Point> processedPoints;
+
+    //adding additional fields to support Offline recognizer
+    public String fileName;
+    public String gestureId;
+    public int user;
+    public String speed;
+    public int repetition;
+
     UnistrokeTemplate(String name, ArrayList<Point> capturedPoints)
     {
-        this.name = name;
+        this.gestureType = name;
         this.capturedPoints = capturedPoints;
         processedPoints = new ArrayList<>();
         
+    }
+
+    UnistrokeTemplate(String fileName,String gestureId, String user, String speed, String gestureType, int repetition, ArrayList<Point> capturedPoints)
+    {
+        this.fileName = fileName;
+        this.gestureId = gestureId;
+        this.user = Integer.parseInt(user);
+        this.speed = speed;
+        this.gestureType = gestureType;
+        this.repetition = repetition;
+        this.capturedPoints = capturedPoints;
+        this.processedPoints = GestureRecognizer.processingGesture(capturedPoints);       
+    }
+}
+
+//N-best List objects 
+class SingleMatchResult
+{
+    public UnistrokeTemplate templateGesture;
+    public double score;
+
+    // Constructor
+    SingleMatchResult(UnistrokeTemplate templateGesture, double score){
+        this.templateGesture = templateGesture;
+        this.score = score;
     }
 }
 

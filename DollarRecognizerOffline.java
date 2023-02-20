@@ -7,54 +7,9 @@ import javax.xml.parsers.*;
 import org.w3c.dom.*;
 import java.awt.*;
 
-// Class to store the data of a single gesture
-class UnistrokeGesture{
-    
-    public String fileName;
-    public String gestureId;
-    public int user;
-    public String speed;
-    public String gestureType; 
-    public int repetition;
-    public ArrayList<Point> capturedPoints;
-    public ArrayList<Point> processedPoints;
-
-    // Constructor
-    UnistrokeGesture(String fileName,String gestureId, String user, String speed, String gestureType, int repetition, ArrayList<Point> capturedPoints)
-    {
-        this.fileName = fileName;
-        this.gestureId = gestureId;
-        this.user = Integer.parseInt(user);
-        this.speed = speed;
-        this.gestureType = gestureType;
-        this.repetition = repetition;
-        this.capturedPoints = capturedPoints;
-        this.processedPoints = GestureRecognizer.processingGesture(capturedPoints);       
-    }
-
-    // Method to get an UnistrokeTemplate object from an UnistrokeGesture object
-    public UnistrokeTemplate getUnistrokeTemplate(){
-        return new UnistrokeTemplate(gestureType, processedPoints);
-    }
-
-}
-
-// Class to store the results from each recognition
-class SingleMatchResult
-{
-    public UnistrokeGesture templateGesture;
-    public double score;
-
-    // Constructor
-    SingleMatchResult(UnistrokeGesture templateGesture, double score){
-        this.templateGesture = templateGesture;
-        this.score = score;
-    }
-}
-
 class CandidateCompleteResults
 {
-    public UnistrokeGesture candidateGesture;
+    public UnistrokeTemplate candidateGesture;
     public ArrayList<SingleMatchResult> trainingSetResults;
     public int randomIteration;
     public int numberOfTrainingExamples;
@@ -83,7 +38,7 @@ class CandidateCompleteResults
     // Method to generate a String with all the training set results and scores, in the format {user1-gestureType1-repetition1,score1,user2-gestureType2-repetition2,score2,...}
     public String generateTrainingSetResultsWithScoresString(){
         String trainingSetResultsString = "{";
-        for(int i=0;i<trainingSetResults.size();i++){
+        for(int i=0;i<trainingSetResults.size() && i<50 ;i++){
             trainingSetResultsString += trainingSetResults.get(i).templateGesture.user + "-" + trainingSetResults.get(i).templateGesture.gestureType + "-" + trainingSetResults.get(i).templateGesture.repetition + "," + trainingSetResults.get(i).score + ",";
         }
         trainingSetResultsString += "}";
@@ -91,7 +46,7 @@ class CandidateCompleteResults
     }
 
     // Method to generate a String with the gesture data, in the format {user-gestureType-repetition}
-    public String generateGestureString(UnistrokeGesture gesture){
+    public String generateGestureString(UnistrokeTemplate gesture){
         String gestureString = "{" + gesture.user + "-" + gesture.gestureType + "-" + gesture.repetition + "}";
         return gestureString;
     }
@@ -99,7 +54,7 @@ class CandidateCompleteResults
     // Method to generate a String with the results of the recognition in CSV format
     public String generateCSVString(){
         String csvString = "";
-        UnistrokeGesture bestGesture = trainingSetResults.get(0).templateGesture;
+        UnistrokeTemplate bestGesture = trainingSetResults.get(0).templateGesture;
         int bestScore = (int)trainingSetResults.get(0).score;
 
         int isCorrect = 0;
@@ -111,14 +66,14 @@ class CandidateCompleteResults
         + candidateGesture.repetition + "," + randomIteration + "," + numberOfTrainingExamples + "," 
         + totalSizeOfTrainingSet + "," + generateTrainingSetResultsString() + ","
         + generateGestureString(candidateGesture) + "," + bestGesture.gestureType + "," + isCorrect + ","
-        + bestScore + "," + generateGestureString(bestGesture) + "," + generateTrainingSetResultsWithScoresString();
+        + bestScore + "," + generateGestureString(bestGesture) + ",\"" + generateTrainingSetResultsWithScoresString()+"\""; //adding "" with escape characters for creating csv correctly
 
         return csvString;
     }
 
     // Method to indicate if the candidate gesture was recognized correctly
     public boolean isCorrect(){
-        UnistrokeGesture bestGesture = trainingSetResults.get(0).templateGesture;
+        UnistrokeTemplate bestGesture = trainingSetResults.get(0).templateGesture;
         if (bestGesture.gestureType.equals(candidateGesture.gestureType)){
             return true;
         }
@@ -134,7 +89,7 @@ public class DollarRecognizerOffline {
 
     // Constructor
     DollarRecognizerOffline() throws Exception{
-        ArrayList <UnistrokeGesture> gestureList;
+        ArrayList <UnistrokeTemplate> gestureList;
         populateGestureTypes();
         gestureList = extractDataFromXML();
         randomOfflineRecognizer(gestureList);
@@ -162,8 +117,8 @@ public class DollarRecognizerOffline {
         gestureTypes.put("x", 15);
     }
 
-    // Method to extract data from an XML, returns a single UnistrokeGesture object
-    public static UnistrokeGesture createGesture(File templateFile) throws Exception{
+    // Method to extract data from an XML, returns a single UnistrokeTemplate object
+    public static UnistrokeTemplate createGesture(File templateFile) throws Exception{
 
         ArrayList<Point> capturedPoints = new ArrayList<>();
         
@@ -187,44 +142,45 @@ public class DollarRecognizerOffline {
         String gestureType = templateXML.getDocumentElement().getAttribute("Name").substring(0,gestureId.length()-2);
         int repetition = Integer.parseInt(templateXML.getDocumentElement().getAttribute("Number"));
 
-        return new UnistrokeGesture(fileName, gestureId, user, speed, gestureType, repetition, capturedPoints);
+        return new UnistrokeTemplate(fileName, gestureId, user, speed, gestureType, repetition, capturedPoints);
     }
 
-    // Method to extract data from the XML file list, returns an ArrayList of UnistrokeGesture objects
-    public static ArrayList <UnistrokeGesture> extractDataFromXML() throws Exception{
+    // Method to extract data from the XML file list, returns an ArrayList of UnistrokeTemplate objects
+    public static ArrayList <UnistrokeTemplate> extractDataFromXML() throws Exception{
         
-        ArrayList <UnistrokeGesture> unistrokeGestures = new ArrayList<>();
+        ArrayList <UnistrokeTemplate> UnistrokeTemplates = new ArrayList<>();
         String xmlDirPath = System.getProperty("user.dir");
         
-        //System.out.println("xmlDirPath: " + xmlDirPath);
+        System.out.println("xmlDirPath: " + xmlDirPath);
         
-        File xmlDir = new File(xmlDirPath + "/Project1Part3_Resources/xml_logs");
-        
+        File xmlDir = new File(xmlDirPath.substring(0,xmlDirPath.lastIndexOf("/")) + "/Project1Part3_Resources/xml_logs");
+        if(!xmlDir.getAbsoluteFile().exists())
+            xmlDir = new File(xmlDirPath + "/Project1Part3_Resources/xml_logs");
         //System.out.println("xmlDir.getAbsoluteFile().exists(): " + xmlDir.getAbsoluteFile().exists());
         //System.out.println("user.dir: " + System.getProperty("user.dir"));
-        //System.out.println("xmlDir.getAbsolutePath: " + xmlDir.getAbsolutePath());
+        System.out.println("xmlDir.getAbsolutePath: " + xmlDir.getAbsolutePath());
         
         String dirList[] = xmlDir.list(); 
-        for(int i=1;i<dirList.length;i++){
+        for(int i=0;i<dirList.length;i++){
             //System.out.println("dirlist["+i+"]: "+dirList[i]); 
             if(dirList[i].length()==3 && !dirList[i].contains("pilot")){
                 File userDir = new File(xmlDir.getAbsoluteFile()+"/"+dirList[i]+"/medium");
                 String userTemplateList[] = userDir.list(); 
-                //System.out.println(userTemplateList.length);
+                System.out.println("user "+dirList[i]+" number of templates "+userTemplateList.length);
                 for(int j=0;j<userTemplateList.length;j++){
                     //System.out.println("\t"+userTemplateList[j]); 
-                    UnistrokeGesture newGesture = createGesture(new File(userDir.getAbsoluteFile()+"/"+userTemplateList[j])); //to store in a array list of arraylists
-                    unistrokeGestures.add(newGesture);
+                    UnistrokeTemplate newGesture = createGesture(new File(userDir.getAbsoluteFile()+"/"+userTemplateList[j])); //to store in a array list of arraylists
+                    UnistrokeTemplates.add(newGesture);
                 }
             }
         }
-        System.out.println("unistrokeGestures.size(): " + unistrokeGestures.size());
-        return unistrokeGestures;
+        System.out.println("UnistrokeTemplates.size(): " + UnistrokeTemplates.size());
+        return UnistrokeTemplates;
     }
 
     // Method to filter the gesture list based on the user
-    public static ArrayList <UnistrokeGesture> filterGestureListByUser(ArrayList <UnistrokeGesture> gestureList, int user){
-        ArrayList <UnistrokeGesture> filteredGestureList = new ArrayList<>();
+    public static ArrayList <UnistrokeTemplate> filterGestureListByUser(ArrayList <UnistrokeTemplate> gestureList, int user){
+        ArrayList <UnistrokeTemplate> filteredGestureList = new ArrayList<>();
         for(int i=0;i<gestureList.size();i++){
             if(gestureList.get(i).user==user){
                 filteredGestureList.add(gestureList.get(i));
@@ -234,8 +190,8 @@ public class DollarRecognizerOffline {
     }
 
     // Method to filter the gesture list based on the iteration
-    public static ArrayList <UnistrokeGesture> filterGestureListByIteration(ArrayList <UnistrokeGesture> gestureList, int iteration){
-        ArrayList <UnistrokeGesture> filteredGestureList = new ArrayList<>();
+    public static ArrayList <UnistrokeTemplate> filterGestureListByIteration(ArrayList <UnistrokeTemplate> gestureList, int iteration){
+        ArrayList <UnistrokeTemplate> filteredGestureList = new ArrayList<>();
         for(int i=0;i<gestureList.size();i++){
             if(gestureList.get(i).repetition==iteration){
                 filteredGestureList.add(gestureList.get(i));
@@ -245,8 +201,8 @@ public class DollarRecognizerOffline {
     }
 
     // Method to filter the gesture list based on the gesture type
-    public static ArrayList <UnistrokeGesture> filterGestureListByGestureType(ArrayList <UnistrokeGesture> gestureList, int gestureType){
-        ArrayList <UnistrokeGesture> filteredGestureList = new ArrayList<>();
+    public static ArrayList <UnistrokeTemplate> filterGestureListByGestureType(ArrayList <UnistrokeTemplate> gestureList, int gestureType){
+        ArrayList <UnistrokeTemplate> filteredGestureList = new ArrayList<>();
         for(int i=0;i<gestureList.size();i++){
             if(gestureTypes.get(gestureList.get(i).gestureType).equals(gestureType)){
                 filteredGestureList.add(gestureList.get(i));
@@ -257,23 +213,23 @@ public class DollarRecognizerOffline {
 
 
     // Method to perform the random offline recognizer
-    public static void randomOfflineRecognizer(ArrayList <UnistrokeGesture> gestureList) throws Exception{
+    public static void randomOfflineRecognizer(ArrayList <UnistrokeTemplate> gestureList) throws Exception{
 
         ArrayList <CandidateCompleteResults> resultLog = new ArrayList<>();
 
         // For each user
         for(int u=1;u<10;u++){
-            ArrayList <UnistrokeGesture> userGestureList = filterGestureListByUser(gestureList, u);
+            ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, u+1); // user numbers from 2 to 11 
             // For each example
             for(int e=1;e<9;e++){
                 // Repeat 100 times
                 for(int i=1;i<100;i++){
                     // For each gesture type
-                    ArrayList <UnistrokeGesture> candidateGestures = new ArrayList<>();
+                    ArrayList <UnistrokeTemplate> candidateGestures = new ArrayList<>();
                     ArrayList <UnistrokeTemplate> selectedTemplateGestures = new ArrayList<>();
                     //UnistrokeTemplate[] selectedTemplateGestures = new UnistrokeTemplate[e*16];
                     for(int g=0;g<16;g++){
-                        ArrayList <UnistrokeGesture> typeAndUserGestureList = filterGestureListByGestureType(userGestureList, g);
+                        ArrayList <UnistrokeTemplate> typeAndUserGestureList = filterGestureListByGestureType(userGestureList, g);
                         ArrayList <Integer> randomGestureIndices = new ArrayList<>();
                         while(randomGestureIndices.size()<e){
                             int randomGestureIndex = (int)(Math.random()*10);
@@ -283,10 +239,26 @@ public class DollarRecognizerOffline {
                         }
                         for(int j=0;j<randomGestureIndices.size();j++){
                             // Gets the gesture that corresponds to the random index (index=iteration) in the type/user filtered gesture list
-                            selectedTemplateGestures.add(typeAndUserGestureList.get(randomGestureIndices.get(j)).getUnistrokeTemplate());
+                            
+                            //debugging :ANISHA 
+                            try{
+                                selectedTemplateGestures.add(typeAndUserGestureList.get(randomGestureIndices.get(j)));
+                            }catch(Exception ie){
+                                System.out.println("u : "+u + 
+                                                    " gesturelistsize "+gestureList.size()+
+                                                    " userGestureListsize "+userGestureList.size()+
+                                                    "\ne : "+e+
+                                                    "\ni : "+i+
+                                                    "\ng : "+g+
+                                                    " userGestureListsize "+userGestureList.size()+
+                                                    " typeAndUserGestureListsize "+typeAndUserGestureList.size()+
+                                                    "\nj : "+j);
+                                System.out.println("j "+j+" "+randomGestureIndices.get(j)+" "+randomGestureIndices.size()+" "+typeAndUserGestureList.size()+" "+g);
+                                ie.printStackTrace();
+                            }
                         }
                         
-                        UnistrokeGesture candidateGesture = null;
+                        UnistrokeTemplate candidateGesture = null;
                         while (candidateGesture == null) {
                             int candidateGestureIndex = (int)(Math.random()*10);
                             if(!randomGestureIndices.contains(candidateGestureIndex)){
@@ -298,19 +270,21 @@ public class DollarRecognizerOffline {
                     
                     for(int t=0;t<candidateGestures.size();t++)
                     {
-                        UnistrokeGesture currentGesture = candidateGestures.get(t);
+                        UnistrokeTemplate currentGesture = candidateGestures.get(t);
                         CandidateCompleteResults currentResult = new CandidateCompleteResults();
                         currentResult.candidateGesture = currentGesture;
                         currentResult.randomIteration = i;
                         currentResult.numberOfTrainingExamples = e;
                         currentResult.totalSizeOfTrainingSet = e*16;
                         
+                        
                         // Assuming that the result will be an ArrayList of SingleMatchResult objects which have:
-                        // 1. The UnistrokeGesture it scored against
+                        // 1. The UnistrokeTemplate it scored against
                         // 2. The score it got
                         // The list will be ordered from highest to lowest score   
                         
-                        //currentResult.trainingSetResults = GestureRecognizer.recognize(currentGesture.processedPoints, selectedTemplateGestures);
+                        currentResult.trainingSetResults = (ArrayList<SingleMatchResult>)GestureRecognizer.recognize(currentGesture.processedPoints, selectedTemplateGestures).get("N-BEST");
+                        currentResult.orderSingleMatchResults();
 
                         resultLog.add(currentResult);
                     }
