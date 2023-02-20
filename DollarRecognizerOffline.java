@@ -60,12 +60,6 @@ class CandidateCompleteResults
     public int numberOfTrainingExamples;
     public int totalSizeOfTrainingSet;
 
-    // Constructor
-    CandidateCompleteResults(UnistrokeGesture candidateGesture, ArrayList<SingleMatchResult> trainingSetResults){
-        this.candidateGesture = candidateGesture;
-        this.trainingSetResults = trainingSetResults;
-    }
-
     // Method to order the SingleMatchResults by score
     public void orderSingleMatchResults(){
         Collections.sort(trainingSetResults, new Comparator<SingleMatchResult>() {
@@ -121,6 +115,16 @@ class CandidateCompleteResults
 
         return csvString;
     }
+
+    // Method to indicate if the candidate gesture was recognized correctly
+    public boolean isCorrect(){
+        UnistrokeGesture bestGesture = trainingSetResults.get(0).templateGesture;
+        if (bestGesture.gestureType.equals(candidateGesture.gestureType)){
+            return true;
+        }
+        return false;
+    }
+
 }
 
 
@@ -254,11 +258,8 @@ public class DollarRecognizerOffline {
 
     // Method to perform the random offline recognizer
     public static void randomOfflineRecognizer(ArrayList <UnistrokeGesture> gestureList) throws Exception{
-        double totalAverageAccuracy = 0;
-        double totalAccuracy = 0;
-        double totalRepeats = 0;
-        ArrayList <SingleMatchResult> results = new ArrayList<>();
-        ArrayList <String> resultLog = new ArrayList<>();
+
+        ArrayList <CandidateCompleteResults> resultLog = new ArrayList<>();
 
         // For each user
         for(int u=1;u<10;u++){
@@ -298,17 +299,47 @@ public class DollarRecognizerOffline {
                     for(int t=0;t<candidateGestures.size();t++)
                     {
                         UnistrokeGesture currentGesture = candidateGestures.get(t);
-                        // Assuming that the result will be an ArrayList of Result objects which have:
+                        CandidateCompleteResults currentResult = new CandidateCompleteResults();
+                        currentResult.candidateGesture = currentGesture;
+                        currentResult.randomIteration = i;
+                        currentResult.numberOfTrainingExamples = e;
+                        currentResult.totalSizeOfTrainingSet = e*16;
+                        
+                        // Assuming that the result will be an ArrayList of SingleMatchResult objects which have:
                         // 1. The UnistrokeGesture it scored against
                         // 2. The score it got
                         // The list will be ordered from highest to lowest score   
+                        
+                        //currentResult.trainingSetResults = GestureRecognizer.recognize(currentGesture.processedPoints, selectedTemplateGestures);
 
-                        //resultLog.add(GestureRecognizer.recognize(currentGesture.processedPoints, selectedTemplateGestures));
-
+                        resultLog.add(currentResult);
                     }
                 }
             }
         }
+
+        String fileName = "1dollarLog_" + System.currentTimeMillis() + ".csv";
+        File file = new File(fileName);
+        file.createNewFile();
+        FileWriter fw = new FileWriter(file);
+        BufferedWriter bw = new BufferedWriter(fw);
+        bw.write("Recognition Log: A.Barquero & A.Wadhwani // $1 // Washington $1 Unistroke gesture logs // User-Dependent Random-100 Offline Recognizer");
+        bw.newLine();
+        bw.write("User[all-users],GestureType[all-gestures-types],RandomIteration[1to100],#ofTrainingExamples[E],TotalSizeOfTrainingSet[count],TrainingSetContents[specific-gesture-instances],Candidate[specific-instance],RecoResultGestureType[what-was-recognized],CorrectIncorrect[1or0],RecoResultScore,RecoResultBestMatch[specific-instance],RecoResultNBestSorted[instance-and-score]");
+        bw.newLine();
+        int totalCorrect = 0;
+        for(int i=0;i<resultLog.size();i++){
+            bw.write(resultLog.get(i).generateCSVString());
+            if (resultLog.get(i).isCorrect()) {
+                totalCorrect++;
+            }
+            bw.newLine();
+        }
+        bw.newLine();
+        double totalAverageAccuracy = (totalCorrect / (double)resultLog.size()) * 100;
+        bw.write("TotalAvgAccuracy," + totalAverageAccuracy);
+        bw.close();
+        fw.close();
     }   
 
     // Main method
