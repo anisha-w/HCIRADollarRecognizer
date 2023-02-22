@@ -153,11 +153,14 @@ public class DollarRecognizerOffline {
         
         System.out.println("xmlDirPath: " + xmlDirPath);
         
-        File xmlDir = new File(xmlDirPath.substring(0,xmlDirPath.lastIndexOf("/")) + "/Project1Part3_Resources/xml_logs");
-        if(!xmlDir.getAbsoluteFile().exists())
-            xmlDir = new File(xmlDirPath + "/Project1Part3_Resources/xml_logs");
+        //File xmlDir = new File(xmlDirPath.substring(0,xmlDirPath.lastIndexOf("/")) + "/Project1Part3_Resources/xml_logs");
+        //if(!xmlDir.getAbsoluteFile().exists())
+        //    xmlDir = new File(xmlDirPath + "/Project1Part3_Resources/xml_logs");
         //System.out.println("xmlDir.getAbsoluteFile().exists(): " + xmlDir.getAbsoluteFile().exists());
         //System.out.println("user.dir: " + System.getProperty("user.dir"));
+        
+        File xmlDir = new File(xmlDirPath + "/Project1Part3_Resources/xml_logs");
+        
         System.out.println("xmlDir.getAbsolutePath: " + xmlDir.getAbsolutePath());
         
         String dirList[] = xmlDir.list(); 
@@ -286,6 +289,10 @@ public class DollarRecognizerOffline {
                         currentResult.trainingSetResults = (ArrayList<SingleMatchResult>)GestureRecognizer.recognize(currentGesture.processedPoints, selectedTemplateGestures).get("N-BEST");
                         currentResult.orderSingleMatchResults();
                         totalRuns ++;
+                        if (totalRuns % 1000 == 0)
+                        {
+                            System.out.println("Total runs: " + totalRuns);
+                        }
                         resultLog.add(currentResult);
                     }
                 }
@@ -299,17 +306,43 @@ public class DollarRecognizerOffline {
         BufferedWriter bw = new BufferedWriter(fw);
         bw.write("Recognition Log: A.Barquero & A.Wadhwani // $1 // Washington $1 Unistroke gesture logs // User-Dependent Random-100 Offline Recognizer");
         bw.newLine();
+        bw.newLine();
         bw.write("User[all-users],GestureType[all-gestures-types],RandomIteration[1to100],#ofTrainingExamples[E],TotalSizeOfTrainingSet[count],TrainingSetContents[specific-gesture-instances],Candidate[specific-instance],RecoResultGestureType[what-was-recognized],CorrectIncorrect[1or0],RecoResultScore,RecoResultBestMatch[specific-instance],RecoResultNBestSorted[instance-and-score]");
         bw.newLine();
         int totalCorrect = 0;
+        int userCorrect = 0;
+        int currentUser = 0;
+        int userCounter = 0;
+        Map<Integer, Double> localAverageAccuracy = new HashMap<>();
         for(int i=0;i<resultLog.size();i++){
+            userCounter ++;
+            if (i==0) 
+            {
+                currentUser = resultLog.get(i).candidateGesture.user;
+            }
             bw.write(resultLog.get(i).generateCSVString());
             if (resultLog.get(i).isCorrect()) {
                 totalCorrect++;
+                userCorrect++;
+            }
+            if (resultLog.get(i).candidateGesture.user != currentUser)
+            {
+                double userAccuracy = (userCorrect / (double)(userCounter)) * 100;
+                //bw.write("LocalAvgAccuracy," + userAccuracy);
+                //bw.newLine();
+                localAverageAccuracy.put(currentUser, userAccuracy);
+                userCorrect = 0;
+                userCounter = 0;
+                currentUser = resultLog.get(i).candidateGesture.user;
             }
             bw.newLine();
         }
         bw.newLine();
+
+        for (Map.Entry<Integer, Double> entry : localAverageAccuracy.entrySet()) {
+            bw.write("User" + entry.getKey() + "AvgAccuracy," + entry.getValue());
+            bw.newLine();
+        }
         double totalAverageAccuracy = (totalCorrect / (double)resultLog.size()) * 100;
         bw.write("TotalAvgAccuracy," + totalAverageAccuracy);
         bw.close();
