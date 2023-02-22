@@ -20,7 +20,7 @@ class CandidateCompleteResults
         Collections.sort(trainingSetResults, new Comparator<SingleMatchResult>() {
             @Override
             public int compare(SingleMatchResult o1, SingleMatchResult o2) {
-                return Double.compare(o1.score, o2.score);
+                return Double.compare(o2.score,o1.score); // for descending order, we switch order of items
             }
         });
     }
@@ -31,7 +31,7 @@ class CandidateCompleteResults
         for(int i=0;i<trainingSetResults.size();i++){
             trainingSetResultsString += trainingSetResults.get(i).templateGesture.user + "-" + trainingSetResults.get(i).templateGesture.gestureType + "-" + trainingSetResults.get(i).templateGesture.repetition + ",";
         }
-        trainingSetResultsString += "}";
+        trainingSetResultsString = trainingSetResultsString.substring(0, trainingSetResultsString.length()-1) + "}";
         return trainingSetResultsString;
     }
 
@@ -39,9 +39,9 @@ class CandidateCompleteResults
     public String generateTrainingSetResultsWithScoresString(){
         String trainingSetResultsString = "{";
         for(int i=0;i<trainingSetResults.size() && i<50 ;i++){
-            trainingSetResultsString += trainingSetResults.get(i).templateGesture.user + "-" + trainingSetResults.get(i).templateGesture.gestureType + "-" + trainingSetResults.get(i).templateGesture.repetition + "," + trainingSetResults.get(i).score + ",";
+            trainingSetResultsString += trainingSetResults.get(i).templateGesture.user + "-" + trainingSetResults.get(i).templateGesture.gestureType + "-" + trainingSetResults.get(i).templateGesture.repetition + "," + Math.round(trainingSetResults.get(i).score * 1000)/1000.0 + ","; // FIXED
         }
-        trainingSetResultsString += "}";
+        trainingSetResultsString = trainingSetResultsString.substring(0, trainingSetResultsString.length()-1) + "}";
         return trainingSetResultsString;
     }
 
@@ -55,7 +55,7 @@ class CandidateCompleteResults
     public String generateCSVString(){
         String csvString = "";
         UnistrokeTemplate bestGesture = trainingSetResults.get(0).templateGesture;
-        int bestScore = (int)trainingSetResults.get(0).score;
+        double bestScore = trainingSetResults.get(0).score;
 
         int isCorrect = 0;
         if (bestGesture.gestureType.equals(candidateGesture.gestureType)){
@@ -63,10 +63,10 @@ class CandidateCompleteResults
         }
 
         csvString += candidateGesture.user + "," + candidateGesture.gestureType + "," 
-        + candidateGesture.repetition + "," + randomIteration + "," + numberOfTrainingExamples + "," 
-        + totalSizeOfTrainingSet + "," + generateTrainingSetResultsString() + ","
-        + generateGestureString(candidateGesture) + "," + bestGesture.gestureType + "," + isCorrect + ","
-        + bestScore + "," + generateGestureString(bestGesture) + ",\"" + generateTrainingSetResultsWithScoresString()+"\""; //adding "" with escape characters for creating csv correctly
+        + randomIteration + "," + numberOfTrainingExamples + "," + totalSizeOfTrainingSet // random iteration? repetition? number of training examples
+        + ",\"" + generateTrainingSetResultsString() + "\",\""
+        + generateGestureString(candidateGesture) + "\"," + bestGesture.gestureType + "," + isCorrect + ","
+        + bestScore + ",\"" + generateGestureString(bestGesture) + "\",\"" + generateTrainingSetResultsWithScoresString()+"\""; //adding "" with escape characters for creating csv correctly
 
         return csvString;
     }
@@ -216,18 +216,17 @@ public class DollarRecognizerOffline {
     public static void randomOfflineRecognizer(ArrayList <UnistrokeTemplate> gestureList) throws Exception{
 
         ArrayList <CandidateCompleteResults> resultLog = new ArrayList<>();
-
+        int totalRuns = 0;
         // For each user
-        for(int u=1;u<10;u++){
+        for(int u=1;u<=10;u++){
             ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, u+1); // user numbers from 2 to 11 
             // For each example
-            for(int e=1;e<9;e++){
-                // Repeat 100 times
-                for(int i=1;i<100;i++){
-                    // For each gesture type
+            for(int e=1;e<=9;e++){
+                // Repeat 10 times
+                for(int i=1;i<=10;i++){
                     ArrayList <UnistrokeTemplate> candidateGestures = new ArrayList<>();
                     ArrayList <UnistrokeTemplate> selectedTemplateGestures = new ArrayList<>();
-                    //UnistrokeTemplate[] selectedTemplateGestures = new UnistrokeTemplate[e*16];
+                    // For each gesture type
                     for(int g=0;g<16;g++){
                         ArrayList <UnistrokeTemplate> typeAndUserGestureList = filterGestureListByGestureType(userGestureList, g);
                         ArrayList <Integer> randomGestureIndices = new ArrayList<>();
@@ -265,10 +264,11 @@ public class DollarRecognizerOffline {
                                 candidateGesture = typeAndUserGestureList.get(candidateGestureIndex);
                             }
                         }
+                        // CandidateGestures + 1 candidate gesture, total of 16
                         candidateGestures.add(candidateGesture);
                     }
-                    
-                    for(int t=0;t<candidateGestures.size();t++)
+                    // For each candidate gesture
+                    for(int t=0;t<16;t++)
                     {
                         UnistrokeTemplate currentGesture = candidateGestures.get(t);
                         CandidateCompleteResults currentResult = new CandidateCompleteResults();
@@ -285,13 +285,13 @@ public class DollarRecognizerOffline {
                         
                         currentResult.trainingSetResults = (ArrayList<SingleMatchResult>)GestureRecognizer.recognize(currentGesture.processedPoints, selectedTemplateGestures).get("N-BEST");
                         currentResult.orderSingleMatchResults();
-
+                        totalRuns ++;
                         resultLog.add(currentResult);
                     }
                 }
             }
         }
-
+        System.out.println("Total runs: " + totalRuns);
         String fileName = "1dollarLog_" + System.currentTimeMillis() + ".csv";
         File file = new File(fileName);
         file.createNewFile();

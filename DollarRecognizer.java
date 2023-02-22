@@ -288,7 +288,7 @@ class GestureRecognizer{
         double distance,score;
         for (UnistrokeTemplate unistrokeTemplate : templates) {
             distance = distanceAtBestAngle(processedPoints,unistrokeTemplate,45,-45,2); //angles in degrees
-            score = (double)1 - (b / (0.5 * Math.sqrt(size*size + size*size)));
+            score = (double)1 - (distance / (0.5 * Math.sqrt(size*size + size*size)));
 
             nBestList.add(new SingleMatchResult(unistrokeTemplate, score));
             if(distance < b){
