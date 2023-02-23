@@ -225,7 +225,7 @@ public class DollarRecognizerOffline {
             ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, u+1); // user numbers from 2 to 11 
             // For each example
             for(int e=1;e<=9;e++){
-                // Repeat 10 times
+                // Repeat X times
                 for(int i=1;i<=10;i++){
                     ArrayList <UnistrokeTemplate> candidateGestures = new ArrayList<>();
                     ArrayList <UnistrokeTemplate> selectedTemplateGestures = new ArrayList<>();
@@ -298,6 +298,7 @@ public class DollarRecognizerOffline {
                 }
             }
         }
+        
         System.out.println("Total runs: " + totalRuns);
         String fileName = "1dollarLog_" + System.currentTimeMillis() + ".csv";
         File file = new File(fileName);
@@ -309,11 +310,14 @@ public class DollarRecognizerOffline {
         bw.newLine();
         bw.write("User[all-users],GestureType[all-gestures-types],RandomIteration[1to100],#ofTrainingExamples[E],TotalSizeOfTrainingSet[count],TrainingSetContents[specific-gesture-instances],Candidate[specific-instance],RecoResultGestureType[what-was-recognized],CorrectIncorrect[1or0],RecoResultScore,RecoResultBestMatch[specific-instance],RecoResultNBestSorted[instance-and-score]");
         bw.newLine();
+
         int totalCorrect = 0;
         int userCorrect = 0;
         int currentUser = 0;
         int userCounter = 0;
+        double userAccuracy = 0;
         Map<Integer, Double> localAverageAccuracy = new HashMap<>();
+
         for(int i=0;i<resultLog.size();i++){
             userCounter ++;
             if (i==0) 
@@ -327,7 +331,7 @@ public class DollarRecognizerOffline {
             }
             if (resultLog.get(i).candidateGesture.user != currentUser)
             {
-                double userAccuracy = (userCorrect / (double)(userCounter)) * 100;
+                userAccuracy = (userCorrect / (double)(userCounter)) * 100;
                 //bw.write("LocalAvgAccuracy," + userAccuracy);
                 //bw.newLine();
                 localAverageAccuracy.put(currentUser, userAccuracy);
@@ -337,6 +341,9 @@ public class DollarRecognizerOffline {
             }
             bw.newLine();
         }
+        userAccuracy = (userCorrect / (double)(userCounter)) * 100;
+        localAverageAccuracy.put(currentUser, userAccuracy);
+
         bw.newLine();
 
         for (Map.Entry<Integer, Double> entry : localAverageAccuracy.entrySet()) {
