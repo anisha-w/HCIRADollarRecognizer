@@ -19,19 +19,21 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
     //Set all canvas parameters at initialization
     CanvasPanel(){
         setBackground(Color.BLACK);
-        setSize(800, 600);
+        setSize(1024/2, 768-100);
         setVisible(true);
         addMouseListener(this);
         addMouseMotionListener(this);
 
-        resultLabel = new JLabel("",SwingConstants.CENTER);
-        //resultLabel.setBackground(Color.WHITE);
-        //resultLabel.setOpaque(true);
-        resultLabel.setForeground(Color.PINK);
-        resultLabel.setBounds(0, 0, 800, 50);
-        add(resultLabel);
-        setLayout(null);
-        //validate();
+        //Commenting out the label for our experiment
+
+        // resultLabel = new JLabel("",SwingConstants.CENTER);
+        // //resultLabel.setBackground(Color.WHITE);
+        // //resultLabel.setOpaque(true);
+        // resultLabel.setForeground(Color.PINK);
+        // resultLabel.setBounds(0, 0, 400, 50);
+        // add(resultLabel);
+        // setLayout(null);
+        // //validate();
 
     }
 
@@ -413,12 +415,12 @@ class DollarRecognizer{
         
         setButtons();
         setCanvasPanel();
-        homeFrame.setSize(800,600);
+        homeFrame.setSize(1024,768);
         homeFrame.setLayout(null);
         homeFrame.setVisible(true);
         homeFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-        homeFrame.setLocation(dim.width/2 - 400, dim.height/2 - 300);
+        homeFrame.setLocation(dim.width/2 - 1024/2, dim.height/2 - 768/2);
 
         generateTemplates();
         GestureRecognizer.setCanvasWindow(canvasWindow);
@@ -452,14 +454,23 @@ class DollarRecognizer{
 
     void setCanvasPanel()
     {
+        
         canvasWindow = new CanvasPanel();
         homeFrame.add(canvasWindow);
+
+        // Show the unistrokes.gif image in the right side of the homeFrame
+        ImageIcon icon = new ImageIcon("unistrokes.gif");
+        // Make the image look good
+        JLabel imageLabel = new JLabel(icon);
+        imageLabel.setBounds(1024/2 + 30, 200, 449, 446);
+        homeFrame.add(imageLabel);
+            
     }
 
     void setButtons()
     {
         JButton clearBtn = new JButton("Clear");
-        clearBtn.setBounds(350,500,100, 40);
+        clearBtn.setBounds(((1024/2)-100)/2,768-100+10,100,40);
 
         clearBtn.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){  
