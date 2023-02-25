@@ -408,9 +408,22 @@ class DollarRecognizer{
     JFrame homeFrame;
     CanvasPanel canvasWindow;
     static UnistrokeTemplate[] templates = new UnistrokeTemplate[16];
+    int participantId;
+    int numStrokes;
     
-    DollarRecognizer()
+    DollarRecognizer(int mode)
     {
+        if(mode == 1)
+        {
+            homeFrame=new JFrame("Dollar Trainer");
+        }
+        else
+        {
+            homeFrame=new JFrame("Online Recognizer");
+        }
+
+
+
         homeFrame=new JFrame("$1 Recognizer");
         
         setButtons();
@@ -430,6 +443,7 @@ class DollarRecognizer{
         
         
     }
+
 
     //Templates taken from JavaScript 
     void generateTemplates()
@@ -469,9 +483,9 @@ class DollarRecognizer{
 
     void setButtons()
     {
-        JButton clearBtn = new JButton("Clear");
-        clearBtn.setBounds(((1024/2)-100)/2,768-100+10,100,40);
+        // Create a button that says "Clear"
 
+        JButton clearBtn = new JButton("Clear");
         clearBtn.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){  
                         canvasWindow.repaint();
@@ -481,11 +495,118 @@ class DollarRecognizer{
                         //homeFrame.setLayout(null);
                     }  
                 });  
-            
+
+        clearBtn.setBounds(200, 768 - 90, 100, 40);            
         homeFrame.add(clearBtn);
+
+
+        // Create a button that says "Submit"
+
+        JButton submitBtn = new JButton("Submit");
+        submitBtn.addActionListener(new ActionListener(){  
+            public void actionPerformed(ActionEvent e){  
+                // The SECOND PART of MAGIC happens here
+            }
+        });
+
+        submitBtn.setBounds(1024 - 300, 768 - 90, 100, 40);
+        homeFrame.add(submitBtn);
+        
+
+    }
+
+    protected void setNumStrokes(int numStrokes) {
+        this.numStrokes = numStrokes;
+    }
+
+
+    protected void setParticipantID(int participantId) {
+        this.participantId = participantId;
+    }
+
+    protected void startTraining() {
+        // The FIRST PART of MAGIC happens here
     }
 
     public static void main(String args[]){
-        new DollarRecognizer();
+        // When the system starts, ask the user to select between two different modes of operation
+        // 1. Train the system
+        // 2. Use the system
+        // If the user selects 1, invoke DollarRecognizer(1), if 2, invoke DollarRecognizer(0)
+
+        // Create a window that asks the user to select between two different modes of operation
+        JFrame modeFrame = new JFrame("Select Mode");
+        modeFrame.setSize(400, 200);
+        modeFrame.setLayout(null);
+        modeFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        modeFrame.setVisible(true);
+
+        // Create a button that says "Train"
+        JButton trainBtn = new JButton("Collect Data");
+        trainBtn.setBounds(50,50,150,40);
+        trainBtn.addActionListener(new ActionListener(){  
+            public void actionPerformed(ActionEvent e){  
+                        // Create a window that asks the user to insert the participant ID, and type the number of strokes (default 10)
+                        JFrame trainFrame = new JFrame("Collect Data");
+                        trainFrame.setSize(400, 200);
+                        trainFrame.setLayout(null);
+                        trainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                        trainFrame.setVisible(true);
+
+                        JLabel idLabel = new JLabel("Participant ID");
+                        idLabel.setBounds(50,10,100,40);
+                        trainFrame.add(idLabel);
+
+                        // Create a text field that asks the user to insert the participant ID
+                        JTextField idField = new JTextField();
+                        idField.setBounds(50,50,100,40);
+                        trainFrame.add(idField);
+
+                        JLabel strokeLabel = new JLabel("Number of Strokes");
+                        strokeLabel.setBounds(200,10,150,40);
+                        trainFrame.add(strokeLabel);
+
+                        // Create a text field that asks the user to insert the number of strokes
+                        JTextField strokeField = new JTextField("10");
+                        strokeField.setBounds(200,50,150,40);
+                        trainFrame.add(strokeField);
+
+                        // Create a button that says "Start"
+                        JButton startBtn = new JButton("Start");
+                        startBtn.setBounds(150,100,100,40);
+                        startBtn.addActionListener(new ActionListener(){  
+                            public void actionPerformed(ActionEvent e){  
+                                        // Create a new DollarRecognizer object
+                                        DollarRecognizer dr = new DollarRecognizer(1);
+                                        // Set the participant ID
+                                        dr.setParticipantID(Integer.parseInt(idField.getText()));
+                                        // Set the number of strokes
+                                        dr.setNumStrokes(Integer.parseInt(strokeField.getText()));
+                                        // Start the training
+                                        dr.startTraining();
+                                        trainFrame.dispose();
+                                        modeFrame.dispose();
+                                    }  
+                                });
+                        trainFrame.add(startBtn);
+                    }
+                });
+        modeFrame.add(trainBtn);
+
+        // Create a button that says "Use"
+        JButton useBtn = new JButton("Use");
+        useBtn.setBounds(250,50,100,40);
+        useBtn.addActionListener(new ActionListener(){  
+            public void actionPerformed(ActionEvent e){  
+                        DollarRecognizer dr = new DollarRecognizer(0);
+                        modeFrame.dispose();
+                    }  
+                });
+        modeFrame.add(useBtn);
+
+
+
+
+
     }
 }
