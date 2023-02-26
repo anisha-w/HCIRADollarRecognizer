@@ -6,6 +6,13 @@ import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.event.*;
 import java.util.*;
+import java.nio.file.*;
+import java.io.*;
+import javax.xml.parsers.*;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.*;
+import javax.xml.transform.stream.*;
+import org.w3c.dom.*;
 
 //Class that creates the canvas panel which will be used to draw the gesture
 class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
@@ -16,24 +23,33 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
     public ArrayList<Point> processedPoints;
     JLabel resultLabel;
 
+    //Recognize mode or Data collection mode
+    String mode;
     //Set all canvas parameters at initialization
-    CanvasPanel(){
+    CanvasPanel(String mode){
+	
+		this.mode = mode;
+		
         setBackground(Color.BLACK);
-        setSize(1024/2, 768-100);
+        
         setVisible(true);
         addMouseListener(this);
         addMouseMotionListener(this);
 
-        //Commenting out the label for our experiment
-
-        // resultLabel = new JLabel("",SwingConstants.CENTER);
-        // //resultLabel.setBackground(Color.WHITE);
-        // //resultLabel.setOpaque(true);
-        // resultLabel.setForeground(Color.PINK);
-        // resultLabel.setBounds(0, 0, 400, 50);
-        // add(resultLabel);
-        // setLayout(null);
-        // //validate();
+		if(mode.equals("recognize")){
+			setSize(800, 600);
+	        resultLabel = new JLabel("",SwingConstants.CENTER);
+	        //resultLabel.setBackground(Color.WHITE);
+	        //resultLabel.setOpaque(true);
+	        resultLabel.setForeground(Color.PINK);
+	        resultLabel.setBounds(0, 0, 400, 50);
+	        add(resultLabel);
+	        setLayout(null);
+	        //validate();
+		}else{
+			setSize(1024/2, 768-100);
+		}
+        
 
     }
 
@@ -49,7 +65,8 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
         graphics.setStroke(new BasicStroke(10));
         graphics.drawLine(initX, initY, newX, newY);
         userIsStroking = true;
-        resultLabel.setText("");
+        if(mode.equals("recognize"))
+            resultLabel.setText("");
         // System.out.println("Mouse Clicked at "+x+" "+y);
         
     }
@@ -73,17 +90,28 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
     //Action on mouse released    
     public void mouseReleased(MouseEvent e){
         userIsStroking = false;
-        
-        GestureRecognizer.setCanvasWindow(this);
+        if(mode=="recognize")
+        {
+            GestureRecognizer.setCanvasWindow(this);
 
-        processedPoints = GestureRecognizer.processingGesture(capturedPoints);
+            processedPoints = GestureRecognizer.processingGesture(capturedPoints);
 
-        HashMap<String,Object> result = GestureRecognizer.recognize(processedPoints,DollarRecognizer.templates); // no need to pass points to the function. 
+            HashMap<String,Object> result = GestureRecognizer.recognize(processedPoints,DollarRecognizer.templates); // no need to pass points to the function. 
 
-        UnistrokeTemplate resultTemplate = (UnistrokeTemplate) result.get("TEMPLATE");
-        //System.out.println("Score: " + result.get("SCORE") + " Template : " + resultTemplate.name);
+            UnistrokeTemplate resultTemplate = (UnistrokeTemplate) result.get("TEMPLATE");
+            //System.out.println("Score: " + result.get("SCORE") + " Template : " + resultTemplate.name);
 
-        resultLabel.setText(" Template : " + resultTemplate.gestureType + " | Score: " + result.get("SCORE") );
+                resultLabel.setText(" Template : " + resultTemplate.gestureType + " | Score: " + result.get("SCORE") );
+        }
+        // else do nothing
+
+        // else if(mode=="collect_data"){
+            
+        //     UnistrokeTemplate template = new UnistrokeTemplate("testFile1", "1" , "1" , "medium" , "arrow" , 1, capturedPoints);
+        //     template.storeInFile();
+        //     //UnistrokeTemplate(String fileName,String gestureId, String user, String speed, String gestureType, int repetition, ArrayList<Point> capturedPoints)
+    
+        // }
     }
     
     public void mouseMoved(MouseEvent e){}
@@ -367,7 +395,9 @@ class UnistrokeTemplate{
     public String gestureId;
     public int user;
     public String speed;
-    public int repetition;
+    public int repetition; //sample number
+
+    static String gestureDataPath;
 
     UnistrokeTemplate(String name, ArrayList<Point> capturedPoints)
     {
@@ -387,6 +417,53 @@ class UnistrokeTemplate{
         this.repetition = repetition;
         this.capturedPoints = capturedPoints;
         this.processedPoints = GestureRecognizer.processingGesture(capturedPoints);       
+    }
+
+    //functions for storing template in xml format
+    static void setgestureDataPath(String path){
+        gestureDataPath = path;
+    }
+
+    void storeInFile(){
+        Path path = Paths.get(gestureDataPath+"/"+user); 
+        try{
+            Files.createDirectories(path);
+            System.out.println(path.toString());
+            
+            Document templateDocument = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+            Element rootElement = templateDocument.createElement("Gesture");
+            rootElement.setAttribute("Name", fileName);
+            rootElement.setAttribute("Subject", String.valueOf(user));
+            rootElement.setAttribute("Speed", speed);
+            rootElement.setAttribute("Number", String.valueOf(repetition));
+
+            templateDocument.appendChild(rootElement);
+            
+            for(int i=0;i<capturedPoints.size();i++){
+                Element pointElement = templateDocument.createElement("Point");
+                pointElement.setAttribute("X", String.valueOf(capturedPoints.get(i).x));
+                pointElement.setAttribute("Y", String.valueOf(capturedPoints.get(i).y));
+                //pointElement.setAttribute("T", String.valueOf(time.get(i))); Time?
+                rootElement.appendChild(pointElement);
+
+            }
+
+            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            
+            DOMSource domSource = new DOMSource(templateDocument);
+            StreamResult gestureDataStream = new StreamResult(new File(path.toString()+"/"+fileName+".xml"));
+ 
+            transformer.transform(domSource, gestureDataStream);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        finally{
+            
+                
+        }
+
     }
 }
 
@@ -409,39 +486,64 @@ class DollarRecognizer{
     CanvasPanel canvasWindow;
     static UnistrokeTemplate[] templates = new UnistrokeTemplate[16];
     int participantId;
-    int numStrokes;
-    
-    DollarRecognizer(int mode)
+    int maxSample;
+
+    static String mode="recognize"; //default
+    static String gestureDataPath;
+
+    static String[] gestureNames = {"arrow","caret","check","circle","delete_mark","left_curly_brace","left_sq_bracket","pigtail","question_mark","rectangle",
+    "right_curly_brace","right_sq_bracket","star","triangle","v","x"};
+
+    static HashMap<String,Integer> currSampleCount = new HashMap<>();
+    String currentGesture;
+    int currentSampleNum;
+        
+    DollarRecognizer()
     {
-        if(mode == 1)
+        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        if(mode.equals("recognize"))
+        {
+			homeFrame=new JFrame("Online Recognizer");
+			homeFrame.setSize(800,600);
+			homeFrame.setLocation(dim.width/2 - 400, dim.height/2 - 300);
+
+            
+        }
+        else if(mode.equals("collect_data"))
         {
             homeFrame=new JFrame("Dollar Trainer");
+			homeFrame.setSize(1024,768);
+			homeFrame.setLocation(dim.width/2 - 1024/2, dim.height/2 - 768/2);
+
+            // Show the unistrokes.gif image in the right side of the homeFrame
+            ImageIcon icon = new ImageIcon("unistrokes.gif");
+            // Make the image look good
+            JLabel imageLabel = new JLabel(icon);
+            imageLabel.setBounds(1024/2 + 30, 200, 449, 446);
+            homeFrame.add(imageLabel);
+
+            //display first sample gesture name : ALEX
+            currentGesture = getRandomGesture();
+            currentSampleNum = currSampleCount.get(currentGesture);
+            
         }
-        else
-        {
-            homeFrame=new JFrame("Online Recognizer");
-        }
-
-
-
-        homeFrame=new JFrame("$1 Recognizer");
         
         setButtons();
         setCanvasPanel();
-        homeFrame.setSize(1024,768);
+        
         homeFrame.setLayout(null);
         homeFrame.setVisible(true);
         homeFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-        homeFrame.setLocation(dim.width/2 - 1024/2, dim.height/2 - 768/2);
 
-        generateTemplates();
-        GestureRecognizer.setCanvasWindow(canvasWindow);
-        for (UnistrokeTemplate unistrokeTemplate : templates) {
-            unistrokeTemplate.processedPoints = GestureRecognizer.processingGesture(unistrokeTemplate.capturedPoints);
+        System.out.println("Mode "+mode);
+        if(mode.equals("recognize")){
+            generateTemplates();
+            GestureRecognizer.setCanvasWindow(canvasWindow);
         }
-        
-        
+        else{
+            gestureDataPath = createDirectory();
+            UnistrokeTemplate.setgestureDataPath(gestureDataPath);
+        }
     }
 
 
@@ -464,20 +566,16 @@ class DollarRecognizer{
         templates[13] = new UnistrokeTemplate("right curly brace", new ArrayList<Point>(Arrays.asList(new Point(117,132),new Point(115,132),new Point(115,129),new Point(117,129),new Point(119,128),new Point(122,127),new Point(125,127),new Point(127,127),new Point(130,127),new Point(133,129),new Point(136,129),new Point(138,130),new Point(140,131),new Point(143,134),new Point(144,136),new Point(145,139),new Point(145,142),new Point(145,145),new Point(145,147),new Point(145,149),new Point(144,152),new Point(142,157),new Point(141,160),new Point(139,163),new Point(137,166),new Point(135,167),new Point(133,169),new Point(131,172),new Point(128,173),new Point(126,176),new Point(125,178),new Point(125,180),new Point(125,182),new Point(126,184),new Point(128,187),new Point(130,187),new Point(132,188),new Point(135,189),new Point(140,189),new Point(145,189),new Point(150,187),new Point(155,186),new Point(157,185),new Point(159,184),new Point(156,185),new Point(154,185),new Point(149,185),new Point(145,187),new Point(141,188),new Point(136,191),new Point(134,191),new Point(131,192),new Point(129,193),new Point(129,195),new Point(129,197),new Point(131,200),new Point(133,202),new Point(136,206),new Point(139,211),new Point(142,215),new Point(145,220),new Point(147,225),new Point(148,231),new Point(147,239),new Point(144,244),new Point(139,248),new Point(134,250),new Point(126,253),new Point(119,253),new Point(115,253))));
         templates[14] = new UnistrokeTemplate("star", new ArrayList<Point>(Arrays.asList(new Point(75,250),new Point(75,247),new Point(77,244),new Point(78,242),new Point(79,239),new Point(80,237),new Point(82,234),new Point(82,232),new Point(84,229),new Point(85,225),new Point(87,222),new Point(88,219),new Point(89,216),new Point(91,212),new Point(92,208),new Point(94,204),new Point(95,201),new Point(96,196),new Point(97,194),new Point(98,191),new Point(100,185),new Point(102,178),new Point(104,173),new Point(104,171),new Point(105,164),new Point(106,158),new Point(107,156),new Point(107,152),new Point(108,145),new Point(109,141),new Point(110,139),new Point(112,133),new Point(113,131),new Point(116,127),new Point(117,125),new Point(119,122),new Point(121,121),new Point(123,120),new Point(125,122),new Point(125,125),new Point(127,130),new Point(128,133),new Point(131,143),new Point(136,153),new Point(140,163),new Point(144,172),new Point(145,175),new Point(151,189),new Point(156,201),new Point(161,213),new Point(166,225),new Point(169,233),new Point(171,236),new Point(174,243),new Point(177,247),new Point(178,249),new Point(179,251),new Point(180,253),new Point(180,255),new Point(179,257),new Point(177,257),new Point(174,255),new Point(169,250),new Point(164,247),new Point(160,245),new Point(149,238),new Point(138,230),new Point(127,221),new Point(124,220),new Point(112,212),new Point(110,210),new Point(96,201),new Point(84,195),new Point(74,190),new Point(64,182),new Point(55,175),new Point(51,172),new Point(49,170),new Point(51,169),new Point(56,169),new Point(66,169),new Point(78,168),new Point(92,166),new Point(107,164),new Point(123,161),new Point(140,162),new Point(156,162),new Point(171,160),new Point(173,160),new Point(186,160),new Point(195,160),new Point(198,161),new Point(203,163),new Point(208,163),new Point(206,164),new Point(200,167),new Point(187,172),new Point(174,179),new Point(172,181),new Point(153,192),new Point(137,201),new Point(123,211),new Point(112,220),new Point(99,229),new Point(90,237),new Point(80,244),new Point(73,250),new Point(69,254),new Point(69,252))));
         templates[15] = new UnistrokeTemplate("pigtail", new ArrayList<Point>(Arrays.asList(new Point(81,219),new Point(84,218),new Point(86,220),new Point(88,220),new Point(90,220),new Point(92,219),new Point(95,220),new Point(97,219),new Point(99,220),new Point(102,218),new Point(105,217),new Point(107,216),new Point(110,216),new Point(113,214),new Point(116,212),new Point(118,210),new Point(121,208),new Point(124,205),new Point(126,202),new Point(129,199),new Point(132,196),new Point(136,191),new Point(139,187),new Point(142,182),new Point(144,179),new Point(146,174),new Point(148,170),new Point(149,168),new Point(151,162),new Point(152,160),new Point(152,157),new Point(152,155),new Point(152,151),new Point(152,149),new Point(152,146),new Point(149,142),new Point(148,139),new Point(145,137),new Point(141,135),new Point(139,135),new Point(134,136),new Point(130,140),new Point(128,142),new Point(126,145),new Point(122,150),new Point(119,158),new Point(117,163),new Point(115,170),new Point(114,175),new Point(117,184),new Point(120,190),new Point(125,199),new Point(129,203),new Point(133,208),new Point(138,213),new Point(145,215),new Point(155,218),new Point(164,219),new Point(166,219),new Point(177,219),new Point(182,218),new Point(192,216),new Point(196,213),new Point(199,212),new Point(201,211))));
+    
+        for (UnistrokeTemplate unistrokeTemplate : templates) {
+            unistrokeTemplate.processedPoints = GestureRecognizer.processingGesture(unistrokeTemplate.capturedPoints);
+        }
     }
 
     void setCanvasPanel()
     {
-        
-        canvasWindow = new CanvasPanel();
+        canvasWindow = new CanvasPanel(mode);
         homeFrame.add(canvasWindow);
-
-        // Show the unistrokes.gif image in the right side of the homeFrame
-        ImageIcon icon = new ImageIcon("unistrokes.gif");
-        // Make the image look good
-        JLabel imageLabel = new JLabel(icon);
-        imageLabel.setBounds(1024/2 + 30, 200, 449, 446);
-        homeFrame.add(imageLabel);
             
     }
 
@@ -489,34 +587,60 @@ class DollarRecognizer{
         clearBtn.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){  
                         canvasWindow.repaint();
-                        canvasWindow.clearLabel();  
+                        System.out.println("Here1 "+mode);
+                        if(mode.equals("recognize"))
+                            canvasWindow.clearLabel();  
                         //System.out.println(((JLabel)canvasWindow.getComponent(0)).getText());
                         //((JLabel)canvasWindow.getComponent(0)).setText("");
                         //homeFrame.setLayout(null);
                     }  
                 });  
 
-        clearBtn.setBounds(200, 768 - 90, 100, 40);            
+		if(mode.equals("recognize"))
+        	clearBtn.setBounds(350,500,100, 40);         
+		else if(mode.equals("collect_data"))
+			clearBtn.setBounds(200, 768 - 90, 100, 40);      
         homeFrame.add(clearBtn);
 
 
-        // Create a button that says "Submit"
+		if(mode.equals("collect_data")){
+	        // Create a button that says "Submit"
+	        JButton submitBtn = new JButton("Submit");
+	        submitBtn.addActionListener(new ActionListener(){  
+	            public void actionPerformed(ActionEvent e){  
+	                UnistrokeTemplate template = new UnistrokeTemplate(currentGesture+currentSampleNum, "" , String.valueOf(participantId) , "medium" , currentGesture , currentSampleNum, canvasWindow.capturedPoints);
+                    template.storeInFile();
+                    canvasWindow.repaint();
+                    currentGesture = getRandomGesture();
+                    currentSampleNum = currSampleCount.get(currentGesture);
+                    //display next gesture : ALEX
+	            }
+	        });
 
-        JButton submitBtn = new JButton("Submit");
-        submitBtn.addActionListener(new ActionListener(){  
-            public void actionPerformed(ActionEvent e){  
-                // The SECOND PART of MAGIC happens here
-            }
-        });
-
-        submitBtn.setBounds(1024 - 300, 768 - 90, 100, 40);
-        homeFrame.add(submitBtn);
-        
+	        submitBtn.setBounds(1024 - 300, 768 - 90, 100, 40);
+	        homeFrame.add(submitBtn);
+        }
 
     }
+	
+    String createDirectory(){ // creating directly inside code folder currently :ANISHA 
+        String xmlDirPath = System.getProperty("user.dir");
+        try{
+            Path path = Paths.get(xmlDirPath+"/templateData"); 
+            Files.createDirectories(path);
+            System.out.println(path.toAbsolutePath().toString());
+            return path.toAbsolutePath().toString();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return "";
+        
+        
+    }
 
-    protected void setNumStrokes(int numStrokes) {
-        this.numStrokes = numStrokes;
+    protected void setMaxSamples(int maxSample) {
+        this.maxSample = maxSample;
     }
 
 
@@ -527,6 +651,18 @@ class DollarRecognizer{
     protected void startTraining() {
         // The FIRST PART of MAGIC happens here
     }
+
+    String getRandomGesture(){ // all 160 in random : ALEX ANISHA
+        int index,count;
+        do{
+            index = new Random().nextInt(15);
+            count = currSampleCount.getOrDefault(gestureNames[index],0);
+        } while(count>=10);
+
+        currSampleCount.put(gestureNames[index], count+1);
+        return gestureNames[index] ;
+    }
+
 
     public static void main(String args[]){
         // When the system starts, ask the user to select between two different modes of operation
@@ -562,14 +698,14 @@ class DollarRecognizer{
                         idField.setBounds(50,50,100,40);
                         trainFrame.add(idField);
 
-                        JLabel strokeLabel = new JLabel("Number of Strokes");
-                        strokeLabel.setBounds(200,10,150,40);
-                        trainFrame.add(strokeLabel);
+                        JLabel sampleLabel = new JLabel("Number of Samples");
+                        sampleLabel.setBounds(200,10,150,40);
+                        trainFrame.add(sampleLabel);
 
-                        // Create a text field that asks the user to insert the number of strokes
-                        JTextField strokeField = new JTextField("10");
-                        strokeField.setBounds(200,50,150,40);
-                        trainFrame.add(strokeField);
+                        // Create a text field that asks the user to insert the number of samples
+                        JTextField sampleField = new JTextField("10");
+                        sampleField.setBounds(200,50,150,40);
+                        trainFrame.add(sampleField);
 
                         // Create a button that says "Start"
                         JButton startBtn = new JButton("Start");
@@ -577,11 +713,12 @@ class DollarRecognizer{
                         startBtn.addActionListener(new ActionListener(){  
                             public void actionPerformed(ActionEvent e){  
                                         // Create a new DollarRecognizer object
-                                        DollarRecognizer dr = new DollarRecognizer(1);
+                                        mode = "collect_data";
+                                        DollarRecognizer dr = new DollarRecognizer();
                                         // Set the participant ID
                                         dr.setParticipantID(Integer.parseInt(idField.getText()));
-                                        // Set the number of strokes
-                                        dr.setNumStrokes(Integer.parseInt(strokeField.getText()));
+                                        // Set the number of samples
+                                        dr.setMaxSamples(Integer.parseInt(sampleField.getText()));
                                         // Start the training
                                         dr.startTraining();
                                         trainFrame.dispose();
@@ -597,16 +734,12 @@ class DollarRecognizer{
         JButton useBtn = new JButton("Use");
         useBtn.setBounds(250,50,100,40);
         useBtn.addActionListener(new ActionListener(){  
-            public void actionPerformed(ActionEvent e){  
-                        DollarRecognizer dr = new DollarRecognizer(0);
+            public void actionPerformed(ActionEvent e){ 
+                        DollarRecognizer.mode = "recognize";
+                        new DollarRecognizer();
                         modeFrame.dispose();
                     }  
                 });
         modeFrame.add(useBtn);
-
-
-
-
-
     }
 }
