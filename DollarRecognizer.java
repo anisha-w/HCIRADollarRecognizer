@@ -487,45 +487,60 @@ class DollarRecognizer{
     static UnistrokeTemplate[] templates = new UnistrokeTemplate[16];
     int participantId;
     int maxSample;
+    int gestureCounter;
 
     static String mode="recognize"; //default
     static String gestureDataPath;
 
-    static String[] gestureNames = {"arrow","caret","check","circle","delete_mark","left_curly_brace","left_sq_bracket","pigtail","question_mark","rectangle",
-    "right_curly_brace","right_sq_bracket","star","triangle","v","x"};
+    static String[] gestureNames = {"triangle","x","rectangle","circle","check","caret","zig-zag","arrow","left_square_bracket","right_square_bracket",
+    "v","delete","left_curly_brace","right_curly_brace","star","pigtail"};
 
     static HashMap<String,Integer> currSampleCount = new HashMap<>();
     String currentGesture;
     int currentSampleNum;
+    JLabel gestureCounterLabel, pleaseDrawLabel, gestureNameLabel;
+    JButton clearBtn, submitBtn;
         
     DollarRecognizer()
     {
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         if(mode.equals("recognize"))
         {
-			homeFrame=new JFrame("Online Recognizer");
+			homeFrame=new JFrame("$1 - Online Recognizer");
 			homeFrame.setSize(800,600);
-			homeFrame.setLocation(dim.width/2 - 400, dim.height/2 - 300);
-
-            
+            homeFrame.setLocationRelativeTo(null);
         }
         else if(mode.equals("collect_data"))
         {
-            homeFrame=new JFrame("Dollar Trainer");
+            homeFrame=new JFrame("$1 - Data Collector");
 			homeFrame.setSize(1024,768);
-			homeFrame.setLocation(dim.width/2 - 1024/2, dim.height/2 - 768/2);
+            homeFrame.setLocationRelativeTo(null);
 
-            // Show the unistrokes.gif image in the right side of the homeFrame
-            ImageIcon icon = new ImageIcon("unistrokes.gif");
-            // Make the image look good
+            // Shows the unistrokes.png image in the right side of the homeFrame
+            ImageIcon icon = new ImageIcon("unistrokes.png");
             JLabel imageLabel = new JLabel(icon);
             imageLabel.setBounds(1024/2 + 30, 200, 449, 446);
             homeFrame.add(imageLabel);
 
-            //display first sample gesture name : ALEX
             currentGesture = getRandomGesture();
             currentSampleNum = currSampleCount.get(currentGesture);
-            
+
+            pleaseDrawLabel = new JLabel("Please draw the following gesture according to the guide:");
+            pleaseDrawLabel.setBounds(1024/2 + 20, 20, 500, 50);
+            pleaseDrawLabel.setFont(new Font("Serif", Font.PLAIN, 20));
+            homeFrame.add(pleaseDrawLabel);
+
+            gestureNameLabel = new JLabel(currentGesture);
+            gestureNameLabel.setBounds(1024/2 + 30, 60, 500, 50);
+            gestureNameLabel.setFont(new Font("Serif", Font.PLAIN, 30));
+            homeFrame.add(gestureNameLabel);
+
+            gestureCounter = 1;
+            gestureCounterLabel = new JLabel("Gesture " + gestureCounter + " of " + maxSample);
+            gestureCounterLabel.setBounds(1024-100, 10, 100, 20);
+            gestureCounterLabel.setFont(new Font("Serif", Font.PLAIN, 10));
+            homeFrame.add(gestureCounterLabel);
+
         }
         
         setButtons();
@@ -546,8 +561,53 @@ class DollarRecognizer{
         }
     }
 
+    // Method that updates the gestureCounterLabel and the gestureNameLabel
+    void updateLabels(){
 
-    //Templates taken from JavaScript 
+        // If it is the last sample of the last gesture, then show the "Done" button
+        if(gestureCounter > maxSample*16){
+
+            // Hide the clear and submit buttons
+            clearBtn.setVisible(false);
+            submitBtn.setVisible(false);
+
+            gestureNameLabel.setText("Click \"Done\" to finish.");
+            gestureCounterLabel.setText("");
+            pleaseDrawLabel.setText("Thank you for your participation!");
+
+            // Disable the canvas panel
+            canvasWindow.setEnabled(false);
+                        
+            // Add the done button in the center and bottom of the screen
+            JButton doneBtn = new JButton("Done");
+            doneBtn.setBounds(1024/2 - 50, 768-90, 100, 40);
+            doneBtn.addActionListener(new ActionListener(){
+                public void actionPerformed(ActionEvent e){
+                    homeFrame.dispose();
+                    // Restart the program
+                    String[] args = new String[1];
+                    args[0] = "recognize";
+                    DollarRecognizer.main(args);
+
+
+                }
+            });
+            homeFrame.add(doneBtn);
+            
+            doneBtn.setVisible(true);
+            homeFrame.update(null);
+            
+        }
+        else {
+            String gestureName = currentGesture.replace("_", " ");
+            gestureNameLabel.setText(gestureName);
+            gestureCounterLabel.setText("Gesture " + gestureCounter + " of " + maxSample*16);
+ 
+        }
+
+    }
+
+    // Templates taken from JavaScript 
     void generateTemplates()
     {
         templates[0] = new UnistrokeTemplate("triangle", new ArrayList<Point>(Arrays.asList(new Point(137,139),new Point(135,141),new Point(133,144),new Point(132,146),new Point(130,149),new Point(128,151),new Point(126,155),new Point(123,160),new Point(120,166),new Point(116,171),new Point(112,177),new Point(107,183),new Point(102,188),new Point(100,191),new Point(95,195),new Point(90,199),new Point(86,203),new Point(82,206),new Point(80,209),new Point(75,213),new Point(73,213),new Point(70,216),new Point(67,219),new Point(64,221),new Point(61,223),new Point(60,225),new Point(62,226),new Point(65,225),new Point(67,226),new Point(74,226),new Point(77,227),new Point(85,229),new Point(91,230),new Point(99,231),new Point(108,232),new Point(116,233),new Point(125,233),new Point(134,234),new Point(145,233),new Point(153,232),new Point(160,233),new Point(170,234),new Point(177,235),new Point(179,236),new Point(186,237),new Point(193,238),new Point(198,239),new Point(200,237),new Point(202,239),new Point(204,238),new Point(206,234),new Point(205,230),new Point(202,222),new Point(197,216),new Point(192,207),new Point(186,198),new Point(179,189),new Point(174,183),new Point(170,178),new Point(164,171),new Point(161,168),new Point(154,160),new Point(148,155),new Point(143,150),new Point(138,148),new Point(136,148))));
@@ -583,7 +643,7 @@ class DollarRecognizer{
     {
         // Create a button that says "Clear"
 
-        JButton clearBtn = new JButton("Clear");
+        clearBtn = new JButton("Clear");
         clearBtn.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){  
                         canvasWindow.repaint();
@@ -605,15 +665,16 @@ class DollarRecognizer{
 
 		if(mode.equals("collect_data")){
 	        // Create a button that says "Submit"
-	        JButton submitBtn = new JButton("Submit");
+	        submitBtn = new JButton("Submit");
 	        submitBtn.addActionListener(new ActionListener(){  
 	            public void actionPerformed(ActionEvent e){  
-	                UnistrokeTemplate template = new UnistrokeTemplate(currentGesture+currentSampleNum, "" , String.valueOf(participantId) , "medium" , currentGesture , currentSampleNum, canvasWindow.capturedPoints);
+	                gestureCounter++;
+                    UnistrokeTemplate template = new UnistrokeTemplate(currentGesture+currentSampleNum, "" , String.valueOf(participantId) , "medium" , currentGesture , currentSampleNum, canvasWindow.capturedPoints);
                     template.storeInFile();
-                    canvasWindow.repaint();
                     currentGesture = getRandomGesture();
                     currentSampleNum = currSampleCount.get(currentGesture);
-                    //display next gesture : ALEX
+                    updateLabels();
+                    canvasWindow.repaint();
 	            }
 	        });
 
@@ -671,20 +732,41 @@ class DollarRecognizer{
         // If the user selects 1, invoke DollarRecognizer(1), if 2, invoke DollarRecognizer(0)
 
         // Create a window that asks the user to select between two different modes of operation
-        JFrame modeFrame = new JFrame("Select Mode");
+        JFrame modeFrame = new JFrame("$1 - Select Mode");
         modeFrame.setSize(400, 200);
+        modeFrame.setLocationRelativeTo(null);
+
+
+
+
         modeFrame.setLayout(null);
         modeFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         modeFrame.setVisible(true);
 
-        // Create a button that says "Train"
+        // Creates a centered bold title label that says "HCIRA - $1 Gesture Recognizer"
+        JLabel titleLabel = new JLabel("HCIRA - $1 Gesture Recognizer");
+        
+        titleLabel.setBounds(50,10,300,40);
+        titleLabel.setFont(new Font("Serif", Font.BOLD, 20));
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        modeFrame.add(titleLabel);
+
+        // Creates a centered subtitle label that says "by Alexander Barquero and Anisha Wadhwani"
+        JLabel subtitleLabel = new JLabel("by Alexander Barquero and Anisha Wadhwani");
+        subtitleLabel.setBounds(50,40,300,40);
+        subtitleLabel.setHorizontalAlignment(JLabel.CENTER);
+        modeFrame.add(subtitleLabel);
+
+
+        // Creates a button that says "Collect Data"
         JButton trainBtn = new JButton("Collect Data");
-        trainBtn.setBounds(50,50,150,40);
+        trainBtn.setBounds(50,100,150,40);
         trainBtn.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){  
-                        // Create a window that asks the user to insert the participant ID, and type the number of strokes (default 10)
-                        JFrame trainFrame = new JFrame("Collect Data");
+                        // Creates a window that asks the user to insert the configuration information
+                        JFrame trainFrame = new JFrame("$1 - Collect Data");
                         trainFrame.setSize(400, 200);
+                        trainFrame.setLocationRelativeTo(null);
                         trainFrame.setLayout(null);
                         trainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                         trainFrame.setVisible(true);
@@ -693,7 +775,7 @@ class DollarRecognizer{
                         idLabel.setBounds(50,10,100,40);
                         trainFrame.add(idLabel);
 
-                        // Create a text field that asks the user to insert the participant ID
+                        // Creates a text field that asks the user to insert the participant ID
                         JTextField idField = new JTextField();
                         idField.setBounds(50,50,100,40);
                         trainFrame.add(idField);
@@ -702,12 +784,12 @@ class DollarRecognizer{
                         sampleLabel.setBounds(200,10,150,40);
                         trainFrame.add(sampleLabel);
 
-                        // Create a text field that asks the user to insert the number of samples
+                        // Creates a text field that asks the user to insert the number of samples, with 10 by default
                         JTextField sampleField = new JTextField("10");
                         sampleField.setBounds(200,50,150,40);
                         trainFrame.add(sampleField);
 
-                        // Create a button that says "Start"
+                        // Creates a button that says "Start"
                         JButton startBtn = new JButton("Start");
                         startBtn.setBounds(150,100,100,40);
                         startBtn.addActionListener(new ActionListener(){  
@@ -721,6 +803,7 @@ class DollarRecognizer{
                                         dr.setMaxSamples(Integer.parseInt(sampleField.getText()));
                                         // Start the training
                                         dr.startTraining();
+                                        dr.updateLabels();
                                         trainFrame.dispose();
                                         modeFrame.dispose();
                                     }  
@@ -730,9 +813,9 @@ class DollarRecognizer{
                 });
         modeFrame.add(trainBtn);
 
-        // Create a button that says "Use"
+        // Creates a button that says "Use"
         JButton useBtn = new JButton("Use");
-        useBtn.setBounds(250,50,100,40);
+        useBtn.setBounds(250,100,100,40);
         useBtn.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){ 
                         DollarRecognizer.mode = "recognize";
