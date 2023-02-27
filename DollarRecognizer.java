@@ -47,7 +47,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
 	        setLayout(null);
 	        //validate();
 		}else{
-			setSize(1024/2, 768-100);
+			setSize(1024/2, 568);
 		}
         
 
@@ -503,7 +503,6 @@ class DollarRecognizer{
         
     DollarRecognizer()
     {
-        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         if(mode.equals("recognize"))
         {
 			homeFrame=new JFrame("$1 - Online Recognizer");
@@ -513,31 +512,31 @@ class DollarRecognizer{
         else if(mode.equals("collect_data"))
         {
             homeFrame=new JFrame("$1 - Data Collector");
-			homeFrame.setSize(1024,768);
+			homeFrame.setSize(1024,668);
             homeFrame.setLocationRelativeTo(null);
 
             // Shows the unistrokes.png image in the right side of the homeFrame
             ImageIcon icon = new ImageIcon("unistrokes.png");
             JLabel imageLabel = new JLabel(icon);
-            imageLabel.setBounds(1024/2 + 30, 200, 449, 446);
+            imageLabel.setBounds(1024/2 + 30, 180, 449, 446);
             homeFrame.add(imageLabel);
 
             
 
             pleaseDrawLabel = new JLabel("Please draw the following gesture according to the guide:");
             pleaseDrawLabel.setBounds(1024/2 + 20, 20, 500, 50);
-            pleaseDrawLabel.setFont(new Font("Serif", Font.PLAIN, 20));
+            pleaseDrawLabel.setFont(new Font("Serif", Font.PLAIN, 15));
             homeFrame.add(pleaseDrawLabel);
 
             gestureNameLabel = new JLabel(currentGesture);
             gestureNameLabel.setBounds(1024/2 + 30, 60, 500, 50);
-            gestureNameLabel.setFont(new Font("Serif", Font.PLAIN, 30));
+            gestureNameLabel.setFont(new Font("Serif", Font.PLAIN, 20));
             homeFrame.add(gestureNameLabel);
 
             gestureCounter = 1;
             gestureCounterLabel = new JLabel("Gesture " + gestureCounter + " of " + maxSample);
             gestureCounterLabel.setBounds(1024-100, 10, 100, 20);
-            gestureCounterLabel.setFont(new Font("Serif", Font.PLAIN, 10));
+            gestureCounterLabel.setFont(new Font("Serif", Font.PLAIN, 8));
             homeFrame.add(gestureCounterLabel);
 
         }
@@ -579,7 +578,7 @@ class DollarRecognizer{
                         
             // Add the done button in the center and bottom of the screen
             JButton doneBtn = new JButton("Done");
-            doneBtn.setBounds(1024/2 - 50, 768-90, 100, 40);
+            doneBtn.setBounds(206, 668-90, 100, 40);
             doneBtn.addActionListener(new ActionListener(){
                 public void actionPerformed(ActionEvent e){
                     homeFrame.dispose();
@@ -657,7 +656,7 @@ class DollarRecognizer{
 		if(mode.equals("recognize"))
         	clearBtn.setBounds(350,500,100, 40);         
 		else if(mode.equals("collect_data"))
-			clearBtn.setBounds(200, 768 - 90, 100, 40);      
+			clearBtn.setBounds(50, 578, 100, 40);      
         homeFrame.add(clearBtn);
 
 
@@ -676,7 +675,7 @@ class DollarRecognizer{
 	            }
 	        });
 
-	        submitBtn.setBounds(1024 - 300, 768 - 90, 100, 40);
+	        submitBtn.setBounds(1024/2 - 150, 578, 100, 40);
 	        homeFrame.add(submitBtn);
         }
 
@@ -741,7 +740,7 @@ class DollarRecognizer{
         JLabel titleLabel = new JLabel("HCIRA - $1 Gesture Recognizer");
         
         titleLabel.setBounds(50,10,300,40);
-        titleLabel.setFont(new Font("Serif", Font.BOLD, 20));
+        titleLabel.setFont(new Font("Serif", Font.BOLD, 15));
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
         modeFrame.add(titleLabel);
 
