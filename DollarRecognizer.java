@@ -496,7 +496,7 @@ class DollarRecognizer{
     "v","delete","left_curly_brace","right_curly_brace","star","pigtail"};
 
     static HashMap<String,Integer> currSampleCount = new HashMap<>();
-    String currentGesture;
+    String currentGesture="";
     int currentSampleNum;
     JLabel gestureCounterLabel, pleaseDrawLabel, gestureNameLabel;
     JButton clearBtn, submitBtn;
@@ -522,8 +522,7 @@ class DollarRecognizer{
             imageLabel.setBounds(1024/2 + 30, 200, 449, 446);
             homeFrame.add(imageLabel);
 
-            currentGesture = getRandomGesture();
-            currentSampleNum = currSampleCount.get(currentGesture);
+            
 
             pleaseDrawLabel = new JLabel("Please draw the following gesture according to the guide:");
             pleaseDrawLabel.setBounds(1024/2 + 20, 20, 500, 50);
@@ -647,7 +646,6 @@ class DollarRecognizer{
         clearBtn.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){  
                         canvasWindow.repaint();
-                        System.out.println("Here1 "+mode);
                         if(mode.equals("recognize"))
                             canvasWindow.clearLabel();  
                         //System.out.println(((JLabel)canvasWindow.getComponent(0)).getText());
@@ -709,16 +707,12 @@ class DollarRecognizer{
         this.participantId = participantId;
     }
 
-    protected void startTraining() {
-        // The FIRST PART of MAGIC happens here
-    }
-
     String getRandomGesture(){ // all 160 in random : ALEX ANISHA
         int index,count;
         do{
-            index = new Random().nextInt(15);
+            index = new Random().nextInt(16);
             count = currSampleCount.getOrDefault(gestureNames[index],0);
-        } while(count>=10);
+        } while(count>=maxSample);
 
         currSampleCount.put(gestureNames[index], count+1);
         return gestureNames[index] ;
@@ -801,8 +795,10 @@ class DollarRecognizer{
                                         dr.setParticipantID(Integer.parseInt(idField.getText()));
                                         // Set the number of samples
                                         dr.setMaxSamples(Integer.parseInt(sampleField.getText()));
-                                        // Start the training
-                                        dr.startTraining();
+                                        
+                                        dr.currentGesture = dr.getRandomGesture();
+                                        dr.currentSampleNum = currSampleCount.get(dr.currentGesture);
+
                                         dr.updateLabels();
                                         trainFrame.dispose();
                                         modeFrame.dispose();
