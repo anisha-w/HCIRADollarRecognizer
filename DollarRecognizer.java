@@ -602,6 +602,8 @@ class DollarRecognizer{
             gestureCounterLabel.setText("Gesture " + gestureCounter + " of " + maxSample*16);
  
         }
+        
+        canvasWindow.repaint();
 
     }
 
@@ -668,10 +670,11 @@ class DollarRecognizer{
 	                gestureCounter++;
                     UnistrokeTemplate template = new UnistrokeTemplate(currentGesture+currentSampleNum, "" , String.valueOf(participantId) , "medium" , currentGesture , currentSampleNum, canvasWindow.capturedPoints);
                     template.storeInFile();
-                    currentGesture = getRandomGesture();
-                    currentSampleNum = currSampleCount.get(currentGesture);
+                    if(gestureCounter <= maxSample*16){
+                        currentGesture = getRandomGesture();
+                        currentSampleNum = currSampleCount.get(currentGesture);
+                    }
                     updateLabels();
-                    canvasWindow.repaint();
 	            }
 	        });
 
