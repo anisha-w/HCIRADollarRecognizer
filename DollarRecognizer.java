@@ -593,7 +593,7 @@ class DollarRecognizer{
             homeFrame.add(doneBtn);
             
             doneBtn.setVisible(true);
-            homeFrame.update(null);
+            //homeFrame.update(null);
             
         }
         else {
@@ -666,7 +666,11 @@ class DollarRecognizer{
 	        // Create a button that says "Submit"
 	        submitBtn = new JButton("Submit");
 	        submitBtn.addActionListener(new ActionListener(){  
-	            public void actionPerformed(ActionEvent e){  
+	            public void actionPerformed(ActionEvent e){
+                    if(canvasWindow.capturedPoints==null){
+                        JOptionPane.showMessageDialog(homeFrame, "Please draw something before submitting");  
+                        return;
+                    }
 	                gestureCounter++;
                     UnistrokeTemplate template = new UnistrokeTemplate(currentGesture+currentSampleNum, "" , String.valueOf(participantId) , "medium" , currentGesture , currentSampleNum, canvasWindow.capturedPoints);
                     template.storeInFile();
@@ -675,6 +679,7 @@ class DollarRecognizer{
                         currentSampleNum = currSampleCount.get(currentGesture);
                     }
                     updateLabels();
+                    canvasWindow.capturedPoints=null;
 	            }
 	        });
 
@@ -729,10 +734,8 @@ class DollarRecognizer{
 
         // Create a window that asks the user to select between two different modes of operation
         JFrame modeFrame = new JFrame("$1 - Select Mode");
-        modeFrame.setSize(400, 200);
+        modeFrame.setSize(450, 200);
         modeFrame.setLocationRelativeTo(null);
-
-
 
 
         modeFrame.setLayout(null);
