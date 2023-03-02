@@ -37,11 +37,15 @@ java DollarRecognizer
 ## Part 4
 
 ## a) update your GUI canvas code to write the gesture the user draws to a file;
-### File DollarRecognizer; Method extractDataFromXML (line 149)
+### File DollarRecognizer; Method main (line 736, 761)
+Display Options "collect data" and use.
+Collect Data option allows the data collection for a user with participant id i and number of samples. 
 
 
 ## b) add prompts to the user to draw 10 samples of each gesture type one at a time (and write them to files)
-### File DollarRecognizer; 
+### File DollarRecognizer; getRandomGesture (line 717)
+This function will randomly select a gesture name to be displayed for the user. Keeps track of the number of samples already taken for the gesture and will randomly keep selecting a new gesture if the initially selected gesture is already been selected n times. (in our case n is 10)
+Function called during initialziation (line 804) and then everytime user hits submit button ( line 676 )
 
 
 ## c) recruit 6 people to provide gesture samples for your project  
