@@ -40,6 +40,8 @@ java DollarRecognizer
 ### File DollarRecognizer; Method main (line 736, 761)
 Display Options "collect data" and use.
 Collect Data option allows the data collection for a user with participant id i and number of samples. 
+Clear button and submit button added to UI.
+If submit is pressed without drawing, a popup is shown “Please draw something before submitting”
 
 
 ## b) add prompts to the user to draw 10 samples of each gesture type one at a time (and write them to files)
@@ -49,11 +51,14 @@ Function called during initialziation (line 804) and then everytime user hits su
 
 
 ## c) recruit 6 people to provide gesture samples for your project  
-### File DollarRecognizer; 
+### Not on code. Included consent forms.
+The participant ID (Line 773) and Number of Samples are entered through the UI (line 782)
 
 
 ## d) submit your full dataset.
-### File DollarRecognizer; 
+### File DollarRecognizer; createDirectory (line 692), storeInFile (line 427)
+Directory created at initialisation (line 557) and xml files created when submit hit (line 676)
+
 
 
 # License
