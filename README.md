@@ -1,10 +1,10 @@
 ### Alexander Barquero & Anisha Wadhwani
-# Project #1: Part 3: Offline/Test Recognition with $1 
+Project #1: Part 4: Collecting Data from People
 ### CIS6930: HCIRA
 
 # Introduction
 We present our implementation of the $1 Recognizer, based on the work done by Wobbrock, Wilson and Li.
-In this Part 3, we implement the Offline version of the $1 Recognizer. It reads XML files and stores them as templates after pre-processing, spilts the templates into training templates and testing candidates, executes the recognize function and outputs results.
+In this Part 4, we implement the data collection version of the $1 Recognizer. A new option is added to the existing recognizer system, where the user can choose to either use or collect_data. In data collection mode, the participant id and number of samples per user is taken and then the user is shown the gesture name and a sample drawing for reference. This data is stored in xml files. 
 
 # System
 The application was developed using the Java language, specifically with the Java Standard Edition 18 SDK. 
@@ -19,41 +19,38 @@ You can run the system from any Java enabled IDE, by using the standard running 
 If you want to run from a console, you also need to make sure you have Java compiling and runtime capabilities in your computer. Once that is done, please navigate to the folder root where the .java files are located, and execute the following commands in order:  
 
 ```sh
-javac DollarRecognizerOffline.java
-java DollarRecognizerOffline
+javac DollarRecognizer.java
+java DollarRecognizer
 ```
 
 # Application Features
 
-- Third version adequately running on a Java environment.
-- Templates from XML read correctly 
-- Templates gestures split into a training templates and candidates in a balanced count of user and gesture
-- Details of each test case, like candidate and templates and N best list printed into csv log file. 
-- Average per user accuracy and total accuracy printed in csv log file. 
+- Fourth version adequately running on a Java environment.
+- Collect data and Use options displayed
+- Participant ID and number of samples taken
+- Gesture name, reference image and counter for how much gestures have been drawn yet are displayed. 
+- Clear and Submit buttons displayed for user. Clear allows user to redraw, and submit stores the data in XML. 
+- In case user hits submit without drawing, a popup message is displayed requesting the user to draw. 
 
 # Goals and Coding Features
 
-## Part 3
+## Part 4
 
-## a) read in a gesture dataset from files to use for templates and candidates 
-### File DollarRecognizerOffline; Method extractDataFromXML (line 149)
-All xml files read in from xml_log/<user>/medium folder and (x,y) points read into UnistrokeTemplate object. Added additional fields in UnistrokeTemplate class to keep track of user, gesture, gesture-repetiton etc (File DollarRecognizer line 363). All objects added to a list of UnistrokeTemplate objects. 
+## a) update your GUI canvas code to write the gesture the user draws to a file;
+### File DollarRecognizer; Method extractDataFromXML (line 149)
 
-## b) connect to your existing $1 pre-processing and recognition methods
-### File DollarRecognizer; UnistrokeTemplate constructor  (line 378)
-Added new constructor to initialize extra fields like gesture-repetiton, gesture-id etc and to perform processing steps (step 1-3 of the $1 algorithm) (line 387)
 
-## c) loop over the gesture dataset to systematically configure your recognizer and test it;   
-### File DollarRecognizerOffline; Method randomOfflineRecognizer (line 219)
-Extracts templates from list for each user (line 225) and then picks templates for each gesture of this user (line 234). Randomly selects e templates withour repetition from this set (line 236) and one candidate. After selecting e templates for each gesture for 1 user, this set of templates is sent to recognize function along with candidate. The results ( best matched template and n best list) are stored in a object to print later to csv. This loop is repeated for 100 iterations. 
+## b) add prompts to the user to draw 10 samples of each gesture type one at a time (and write them to files)
+### File DollarRecognizer; 
 
-## d) output the result of the recognition tests to a log file. 
-### File DollarRecognizerOffline; Method randomOfflineRecognizer (line 372) and generateCSVString (line 55)
-Results printed into csv file based on the format given:
 
-User[all-users],GestureType[all-gestures-types],RandomIteration[1to100],#ofTrainingExamples[E],TotalSizeOfTrainingSet[count],TrainingSetContents[specific-gesture-instances],Candidate[specific-instance],RecoResultGestureType[what-was-recognized],CorrectIncorrect[1or0],RecoResultScore,RecoResultBestMatch[specific-instance],RecoResultNBestSorted[instance-and-score]
+## c) recruit 6 people to provide gesture samples for your project  
+### File DollarRecognizer; 
 
-Per user average accuracy and total calculated and printed (line 321) 
+
+## d) submit your full dataset.
+### File DollarRecognizer; 
+
 
 # License
 MIT
