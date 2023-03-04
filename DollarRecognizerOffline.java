@@ -14,6 +14,8 @@ class CandidateCompleteResults
     public int randomIteration;
     public int numberOfTrainingExamples;
     public int totalSizeOfTrainingSet;
+    
+    public ArrayList <UnistrokeTemplate> trainingGesturesSet;
 
     // Method to order the SingleMatchResults by score
     public void orderSingleMatchResults(){
@@ -28,8 +30,8 @@ class CandidateCompleteResults
     // Method to generate a String with all the training set results, in the format {user1-gestureType1-repetition1,user2-gestureType2-repetition2,...}
     public String generateTrainingSetResultsString(){
         String trainingSetResultsString = "{";
-        for(int i=0;i<trainingSetResults.size();i++){
-            trainingSetResultsString += trainingSetResults.get(i).templateGesture.user + "-" + trainingSetResults.get(i).templateGesture.gestureType + "-" + trainingSetResults.get(i).templateGesture.repetition + ",";
+        for(int i=0;i<trainingGesturesSet.size();i++){
+            trainingSetResultsString += trainingGesturesSet.get(i).user + "-" + trainingGesturesSet.get(i).gestureType + "-" + trainingGesturesSet.get(i).repetition + ",";
         }
         trainingSetResultsString = trainingSetResultsString.substring(0, trainingSetResultsString.length()-1) + "}";
         return trainingSetResultsString;
@@ -104,13 +106,17 @@ public class DollarRecognizerOffline {
         gestureTypes.put("check", 2);
         gestureTypes.put("circle", 3);
         gestureTypes.put("delete_mark", 4);
+        gestureTypes.put("delete", 4); //for naming differences in dataset from part 3 and part 4
         gestureTypes.put("left_curly_brace", 5);
         gestureTypes.put("left_sq_bracket", 6);
+        gestureTypes.put("left_square_bracket", 6);//for differences in dataset from part 3 and part 4
         gestureTypes.put("pigtail", 7);
         gestureTypes.put("question_mark", 8);
+        gestureTypes.put("zig-zag", 8); //for differences in dataset from part 3 and part 4
         gestureTypes.put("rectangle", 9);
         gestureTypes.put("right_curly_brace", 10);
         gestureTypes.put("right_sq_bracket", 11);
+        gestureTypes.put("right_square_bracket", 11); //for differences in dataset from part 3 and part 4
         gestureTypes.put("star", 12);
         gestureTypes.put("triangle", 13);
         gestureTypes.put("v", 14);
@@ -139,7 +145,7 @@ public class DollarRecognizerOffline {
         String gestureId = templateXML.getDocumentElement().getAttribute("Name");
         String user = templateXML.getDocumentElement().getAttribute("Subject");
         String speed = templateXML.getDocumentElement().getAttribute("Speed");
-        String gestureType = templateXML.getDocumentElement().getAttribute("Name").substring(0,gestureId.length()-2);
+        String gestureType = templateXML.getDocumentElement().getAttribute("Name").replaceAll("[0-9]", ""); // differences in dataset from part 3 and part 4
         int repetition = Integer.parseInt(templateXML.getDocumentElement().getAttribute("Number"));
 
         return new UnistrokeTemplate(fileName, gestureId, user, speed, gestureType, repetition, capturedPoints);
@@ -159,15 +165,16 @@ public class DollarRecognizerOffline {
         //System.out.println("xmlDir.getAbsoluteFile().exists(): " + xmlDir.getAbsoluteFile().exists());
         //System.out.println("user.dir: " + System.getProperty("user.dir"));
         
-        File xmlDir = new File(xmlDirPath + "/Project1Part3_Resources/xml_logs");
+        File xmlDir = new File(xmlDirPath + "/Project1Part5_Resources/xml_logs"); //ANIHSA : MAKE A MORE GENERIC PATH
         
         System.out.println("xmlDir.getAbsolutePath: " + xmlDir.getAbsolutePath());
         
         String dirList[] = xmlDir.list(); 
         for(int i=0;i<dirList.length;i++){
             //System.out.println("dirlist["+i+"]: "+dirList[i]); 
-            if(dirList[i].length()==3 && !dirList[i].contains("pilot")){
-                File userDir = new File(xmlDir.getAbsoluteFile()+"/"+dirList[i]+"/medium");
+            if(dirList[i].length()<=3 && !dirList[i].contains("pilot")){ //ANISHA : FIX
+                //File userDir = new File(xmlDir.getAbsoluteFile()+"/"+dirList[i]+"/medium"); //project 1 part 3 : ANISHA
+                File userDir = new File(xmlDir.getAbsoluteFile()+"/"+dirList[i]);
                 String userTemplateList[] = userDir.list(); 
                 System.out.println("user "+dirList[i]+" number of templates "+userTemplateList.length);
                 for(int j=0;j<userTemplateList.length;j++){
@@ -221,8 +228,8 @@ public class DollarRecognizerOffline {
         ArrayList <CandidateCompleteResults> resultLog = new ArrayList<>();
         int totalRuns = 0;
         // For each user
-        for(int u=1;u<=10;u++){
-            ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, u+1); // user numbers from 2 to 11 
+        for(int u=1;u<=6;u++){
+            ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, u); // user numbers from 2 to 11; part 4 user number starts from 1
             // For each example
             for(int e=1;e<=9;e++){
                 // Repeat X times
@@ -293,6 +300,7 @@ public class DollarRecognizerOffline {
                         {
                             System.out.println("Total runs: " + totalRuns);
                         }
+                        currentResult.trainingGesturesSet = selectedTemplateGestures;
                         resultLog.add(currentResult);
                     }
                 }
