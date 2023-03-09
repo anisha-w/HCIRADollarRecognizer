@@ -1,10 +1,10 @@
 ### Alexander Barquero & Anisha Wadhwani
-# Project #1: Part 3: Offline/Test Recognition with $1 
+# Project #1: Part 5: Exploring Data from People 
 ### CIS6930: HCIRA
 
 # Introduction
 We present our implementation of the $1 Recognizer, based on the work done by Wobbrock, Wilson and Li.
-In this Part 3, we implement the Offline version of the $1 Recognizer. It reads XML files and stores them as templates after pre-processing, spilts the templates into training templates and testing candidates, executes the recognize function and outputs results.
+In this Part 5, we run the Offline version (Part 3) of the $1 Recognizer on the dataset we collect in Part 4 of the project. The log file is generated and accuarcy is calculated. As the second objective of this deliverable, we feed our dataset into the GHOST toolkit and compute heatmaps and draw insights about user articulation variability 
 
 # System
 The application was developed using the Java language, specifically with the Java Standard Edition 18 SDK. 
@@ -25,35 +25,29 @@ java DollarRecognizerOffline
 
 # Application Features
 
-- Third version adequately running on a Java environment.
-- Templates from XML read correctly 
-- Templates gestures split into a training templates and candidates in a balanced count of user and gesture
-- Details of each test case, like candidate and templates and N best list printed into csv log file. 
-- Average per user accuracy and total accuracy printed in csv log file. 
+- Fifth version adequately running on a Java environment.
+- Log File generated correctly 
+- Computed Heatmaps using GHOST toolkit. 
 
 # Goals and Coding Features
 
-## Part 3
+## Part 5
 
-## a) read in a gesture dataset from files to use for templates and candidates 
-### File DollarRecognizerOffline; Method extractDataFromXML (line 149)
-All xml files read in from xml_log/<user>/medium folder and (x,y) points read into UnistrokeTemplate object. Added additional fields in UnistrokeTemplate class to keep track of user, gesture, gesture-repetiton etc (File DollarRecognizer line 363). All objects added to a list of UnistrokeTemplate objects. 
+## a) Run an offline recognition test with $1 (using your code from Part 3) on your new dataset (from Part 4) 
+Executed. Few changes made to execute the existing code (part 3) inorder to commodate the differences in naminng convention of the two datasets (part 3 and part 4) (line 119,112,115,119)
 
-## b) connect to your existing $1 pre-processing and recognition methods
-### File DollarRecognizer; UnistrokeTemplate constructor  (line 378)
-Added new constructor to initialize extra fields like gesture-repetiton, gesture-id etc and to perform processing steps (step 1-3 of the $1 algorithm) (line 387)
+## b) Output the result of the recognition tests to a log file 
+### Fixes for logfile format : Traning set order fixed  
+#### File DollarRecognizerOffline; Method generateTrainingSetResultsString() (line 31)
+Printing training set into the csv file. [ Reason for fix : Initially training set was printed using the same object as for complete N-best list (hence ordering was different each time since it was ordered by the score)]
 
-## c) loop over the gesture dataset to systematically configure your recognizer and test it;   
-### File DollarRecognizerOffline; Method randomOfflineRecognizer (line 219)
-Extracts templates from list for each user (line 225) and then picks templates for each gesture of this user (line 234). Randomly selects e templates withour repetition from this set (line 236) and one candidate. After selecting e templates for each gesture for 1 user, this set of templates is sent to recognize function along with candidate. The results ( best matched template and n best list) are stored in a object to print later to csv. This loop is repeated for 100 iterations. 
+## c) Run your data through the GHOST heatmap toolkit  
+Dataset fed into the toolkit; Settings done as required; computed heatmaps
 
-## d) output the result of the recognition tests to a log file. 
-### File DollarRecognizerOffline; Method randomOfflineRecognizer (line 372) and generateCSVString (line 55)
-Results printed into csv file based on the format given:
+## d) Extract User Articulation Insights
+(1) : Heatmaps suggest that gestures with straight lines and a low angle number (1, 2) tend to have less variability. This is observed specially in the middle section of the straight lines. This is the case for the V, the caret, both square brackets, and the check. Whereas gestures like the triangle, which also has straight lines, does not exhibit such noticeable behaviour, and instead presents lots of variations in the angles.
 
-User[all-users],GestureType[all-gestures-types],RandomIteration[1to100],#ofTrainingExamples[E],TotalSizeOfTrainingSet[count],TrainingSetContents[specific-gesture-instances],Candidate[specific-instance],RecoResultGestureType[what-was-recognized],CorrectIncorrect[1or0],RecoResultScore,RecoResultBestMatch[specific-instance],RecoResultNBestSorted[instance-and-score]
-
-Per user average accuracy and total calculated and printed (line 321) 
+(2) The heatmaps also suggest that the arrow and pigtail gestures experienced a considerable variance in the way they were started and ended, in terms of the angle and point of origin/end.
 
 # License
 MIT
