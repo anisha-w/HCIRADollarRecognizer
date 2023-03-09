@@ -34,12 +34,12 @@ java DollarRecognizerOffline
 ## Part 5
 
 ## a) Run an offline recognition test with $1 (using your code from Part 3) on your new dataset (from Part 4) 
-Executed. Few changes made to execute the existing code (part 3) inorder to commodate the differences in naminng convention of the two datasets (part 3 and part 4) (line 119,112,115,119)
+Executed. Few changes made to execute the existing code (part 3) inorder to commodate the differences in naming convention of the two datasets (part 3 and part 4) (line 119,112,115,119)
 
 ## b) Output the result of the recognition tests to a log file 
 ### Fixes for logfile format : Traning set order fixed  
 #### File DollarRecognizerOffline; Method generateTrainingSetResultsString() (line 31)
-Printing training set into the csv file. [ Reason for fix : Initially training set was printed using the same object as for complete N-best list (hence ordering was different each time since it was ordered by the score)]
+Printing training set into the csv file. [ Reason for fix : Initially training set was printed by printing the template names from the same object as for complete N-best list and hence ordering was different each time since it was ordered by the score]
 
 ## c) Run your data through the GHOST heatmap toolkit  
 Dataset fed into the toolkit; Settings done as required; computed heatmaps
