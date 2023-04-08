@@ -89,8 +89,17 @@ public class DollarRecognizerOffline {
 
     public static Hashtable<String, Integer> gestureTypes;
 
+    static String gestureSetName;
+    static int gestureSetSize;
+    static Document configDoc;
+
     // Constructor
     DollarRecognizerOffline() throws Exception{
+        
+        configDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File("config.xml"));
+        configDoc.getDocumentElement().normalize();
+        gestureSetName = configDoc.getElementsByTagName("gestureSet").item(0).getTextContent();
+
         ArrayList <UnistrokeTemplate> gestureList;
         populateGestureTypes();
         gestureList = extractDataFromXML();
@@ -100,33 +109,24 @@ public class DollarRecognizerOffline {
 
     // Method to populate the gesture types
     public void populateGestureTypes(){
+
+        gestureSetSize = Integer.parseInt(configDoc.getElementsByTagName(gestureSetName+"Size").item(0).getTextContent());
         gestureTypes = new Hashtable<String, Integer>();
-        gestureTypes.put("arrow", 0);
-        gestureTypes.put("caret", 1);
-        gestureTypes.put("check", 2);
-        gestureTypes.put("circle", 3);
-        gestureTypes.put("delete_mark", 4);
-        gestureTypes.put("delete", 4); //for naming differences in dataset from part 3 and part 4
-        gestureTypes.put("left_curly_brace", 5);
-        gestureTypes.put("left_sq_bracket", 6);
-        gestureTypes.put("left_square_bracket", 6);//for differences in dataset from part 3 and part 4
-        gestureTypes.put("pigtail", 7);
-        gestureTypes.put("question_mark", 8);
-        gestureTypes.put("zig-zag", 8); //for differences in dataset from part 3 and part 4
-        gestureTypes.put("rectangle", 9);
-        gestureTypes.put("right_curly_brace", 10);
-        gestureTypes.put("right_sq_bracket", 11);
-        gestureTypes.put("right_square_bracket", 11); //for differences in dataset from part 3 and part 4
-        gestureTypes.put("star", 12);
-        gestureTypes.put("triangle", 13);
-        gestureTypes.put("v", 14);
-        gestureTypes.put("x", 15);
+
+        NodeList gestureList =  configDoc.getDocumentElement().getElementsByTagName(gestureSetName);
+        for (int i =0; i < gestureList.getLength() ; i++) {
+            Element nNode = (Element) gestureList.item(i);
+            String name= nNode.getElementsByTagName("name").item(0).getTextContent();
+            Integer value = Integer.parseInt(nNode.getElementsByTagName("value").item(0).getTextContent());
+            gestureTypes.put(name, value);
+        }
     }
 
     // Method to extract data from an XML, returns a single UnistrokeTemplate object
     public static UnistrokeTemplate createGesture(File templateFile) throws Exception{
 
         ArrayList<Point> capturedPoints = new ArrayList<>();
+        ArrayList<Long> capturedTimestamp = new ArrayList<>();
         
         Document templateXML = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(templateFile);  
         
@@ -139,6 +139,7 @@ public class DollarRecognizerOffline {
             int x = Integer.parseInt(nodeList.item(i).getAttributes().getNamedItem("X").getNodeValue());
             int y = Integer.parseInt(nodeList.item(i).getAttributes().getNamedItem("Y").getNodeValue());
             capturedPoints.add(new Point(x,y));
+            capturedTimestamp.add(Long.parseLong(nodeList.item(i).getAttributes().getNamedItem("T").getNodeValue()));
         }
 
         String fileName = templateFile.getName();
@@ -148,7 +149,7 @@ public class DollarRecognizerOffline {
         String gestureType = templateXML.getDocumentElement().getAttribute("Name").replaceAll("[0-9]", ""); // differences in dataset from part 3 and part 4
         int repetition = Integer.parseInt(templateXML.getDocumentElement().getAttribute("Number"));
 
-        return new UnistrokeTemplate(fileName, gestureId, user, speed, gestureType, repetition, capturedPoints);
+        return new UnistrokeTemplate(fileName, gestureId, user, speed, gestureType, repetition, capturedPoints,capturedTimestamp);
     }
 
     // Method to extract data from the XML file list, returns an ArrayList of UnistrokeTemplate objects
@@ -165,7 +166,7 @@ public class DollarRecognizerOffline {
         //System.out.println("xmlDir.getAbsoluteFile().exists(): " + xmlDir.getAbsoluteFile().exists());
         //System.out.println("user.dir: " + System.getProperty("user.dir"));
         
-        File xmlDir = new File(xmlDirPath + "/Project1Part5_Resources/xml_logs"); //ANIHSA : MAKE A MORE GENERIC PATH
+        File xmlDir = new File(xmlDirPath + configDoc.getDocumentElement().getElementsByTagName("templatePath").item(0).getTextContent()); //ANIHSA : MAKE A MORE GENERIC PATH
         
         System.out.println("xmlDir.getAbsolutePath: " + xmlDir.getAbsolutePath());
         

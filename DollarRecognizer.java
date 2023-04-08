@@ -21,6 +21,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
     private int initX, initY, newX, newY;
     public ArrayList<Point> capturedPoints;
     public ArrayList<Point> processedPoints;
+    public ArrayList<Long> capturedTimestamp;
     JLabel resultLabel;
 
     //Recognize mode or Data collection mode
@@ -61,6 +62,11 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
         initX = newX = e.getX();
         initY = newY = e.getY();
         capturedPoints.add(new Point(newX, newY));
+
+        //Adding timestamps
+        capturedTimestamp = new ArrayList<>();
+        capturedTimestamp.add((long)System.currentTimeMillis());
+
         graphics.setColor(Color.RED);
         graphics.setStroke(new BasicStroke(10));
         graphics.drawLine(initX, initY, newX, newY);
@@ -78,6 +84,7 @@ class CanvasPanel extends JPanel implements MouseListener, MouseMotionListener
             newX = e.getX();
             newY = e.getY();
             capturedPoints.add(new Point(newX, newY));
+            capturedTimestamp.add((long)System.currentTimeMillis());
             Graphics2D graphics = (Graphics2D)getGraphics();
             graphics.setColor(Color.WHITE);
             graphics.setStroke(new BasicStroke(4));
@@ -389,6 +396,7 @@ class UnistrokeTemplate{
     public String gestureType; // renamed symbol name to gestureType 
     public ArrayList<Point> capturedPoints;
     public ArrayList<Point> processedPoints;
+    public ArrayList<Long> capturedTimestamp;
 
     //adding additional fields to support Offline recognizer
     public String fileName;
@@ -407,7 +415,7 @@ class UnistrokeTemplate{
         
     }
 
-    UnistrokeTemplate(String fileName,String gestureId, String user, String speed, String gestureType, int repetition, ArrayList<Point> capturedPoints)
+    UnistrokeTemplate(String fileName,String gestureId, String user, String speed, String gestureType, int repetition, ArrayList<Point> capturedPoints, ArrayList<Long> capturedTimestamp)
     {
         this.fileName = fileName;
         this.gestureId = gestureId;
@@ -416,7 +424,9 @@ class UnistrokeTemplate{
         this.gestureType = gestureType;
         this.repetition = repetition;
         this.capturedPoints = capturedPoints;
-        this.processedPoints = GestureRecognizer.processingGesture(capturedPoints);       
+        this.processedPoints = GestureRecognizer.processingGesture(capturedPoints);    
+        this.capturedTimestamp = capturedTimestamp; //Added timestamps
+        
     }
 
     //functions for storing template in xml format
@@ -443,7 +453,7 @@ class UnistrokeTemplate{
                 Element pointElement = templateDocument.createElement("Point");
                 pointElement.setAttribute("X", String.valueOf(capturedPoints.get(i).x));
                 pointElement.setAttribute("Y", String.valueOf(capturedPoints.get(i).y));
-                //pointElement.setAttribute("T", String.valueOf(time.get(i))); Time?
+                pointElement.setAttribute("T", String.valueOf(capturedTimestamp.get(i))); //Time
                 rootElement.appendChild(pointElement);
 
             }
@@ -492,8 +502,13 @@ class DollarRecognizer{
     static String mode="recognize"; //default
     static String gestureDataPath;
 
-    static String[] gestureNames = {"triangle","x","rectangle","circle","check","caret","zig-zag","arrow","left_square_bracket","right_square_bracket",
-    "v","delete","left_curly_brace","right_curly_brace","star","pigtail"};
+    // static String[] gestureNames = {"triangle","x","rectangle","circle","check","caret","zig-zag","arrow","left_square_bracket","right_square_bracket",
+    // "v","delete","left_curly_brace","right_curly_brace","star","pigtail"};
+
+    static String gestureSetName;
+    static String[] gestureNames;
+    static int gestureSetSize;
+    static Document configDoc;
 
     static HashMap<String,Integer> currSampleCount = new HashMap<>();
     String currentGesture="";
@@ -501,8 +516,19 @@ class DollarRecognizer{
     JLabel gestureCounterLabel, pleaseDrawLabel, gestureNameLabel;
     JButton clearBtn, submitBtn;
         
-    DollarRecognizer()
+    DollarRecognizer() 
     {
+        try{
+            configDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File("config.xml"));
+            configDoc.getDocumentElement().normalize();
+            gestureSetName = configDoc.getElementsByTagName("gestureSet").item(0).getTextContent();
+        }
+        catch(Exception e){
+            System.out.println("Config File not found");
+        }
+        
+        getGestureNameList();
+
         if(mode.equals("recognize"))
         {
 			homeFrame=new JFrame("$1 - Online Recognizer");
@@ -559,11 +585,23 @@ class DollarRecognizer{
         }
     }
 
+    public static void getGestureNameList() {
+       
+        gestureSetSize = Integer.parseInt(configDoc.getElementsByTagName(gestureSetName+"Size").item(0).getTextContent());
+        gestureNames = new String[gestureSetSize];
+
+        Element gestureListElement = (Element) configDoc.getDocumentElement().getElementsByTagName(gestureSetName).item(0);
+        NodeList gestureList = gestureListElement.getElementsByTagName("gesture");
+        for (int i =0; i < gestureList.getLength() ; i++) {
+            Element nNode = (Element) gestureList.item(i);
+            gestureNames[i] = nNode.getElementsByTagName("name").item(0).getTextContent();
+        }
+    }
     // Method that updates the gestureCounterLabel and the gestureNameLabel
     void updateLabels(){
 
         // If it is the last sample of the last gesture, then show the "Done" button
-        if(gestureCounter > maxSample*16){
+        if(gestureCounter > maxSample*gestureSetSize){
 
             // Hide the clear and submit buttons
             clearBtn.setVisible(false);
@@ -599,7 +637,7 @@ class DollarRecognizer{
         else {
             String gestureName = currentGesture.replace("_", " ");
             gestureNameLabel.setText(gestureName);
-            gestureCounterLabel.setText("Gesture " + gestureCounter + " of " + maxSample*16);
+            gestureCounterLabel.setText("Gesture " + gestureCounter + " of " + maxSample*gestureSetSize);
  
         }
         
@@ -672,9 +710,16 @@ class DollarRecognizer{
                         return;
                     }
 	                gestureCounter++;
-                    UnistrokeTemplate template = new UnistrokeTemplate(currentGesture+currentSampleNum, "" , String.valueOf(participantId) , "medium" , currentGesture , currentSampleNum, canvasWindow.capturedPoints);
+                    String nameSampleNumber;
+
+                    if(currentSampleNum<10)
+                        nameSampleNumber = "0"+currentSampleNum;
+                    else
+                        nameSampleNumber = ""+currentSampleNum;
+
+                    UnistrokeTemplate template = new UnistrokeTemplate(currentGesture+nameSampleNumber, "" , String.valueOf(participantId) , "medium" , currentGesture , currentSampleNum, canvasWindow.capturedPoints,canvasWindow.capturedTimestamp);
                     template.storeInFile();
-                    if(gestureCounter <= maxSample*16){
+                    if(gestureCounter <= maxSample*gestureSetSize){
                         currentGesture = getRandomGesture();
                         currentSampleNum = currSampleCount.get(currentGesture);
                     }
@@ -692,7 +737,7 @@ class DollarRecognizer{
     String createDirectory(){ // creating directly inside code folder currently :ANISHA 
         String xmlDirPath = System.getProperty("user.dir");
         try{
-            Path path = Paths.get(xmlDirPath+"/templateData"); 
+            Path path = Paths.get(xmlDirPath+configDoc.getDocumentElement().getElementsByTagName("storeTemplatePath").item(0).getTextContent()); 
             Files.createDirectories(path);
             System.out.println(path.toAbsolutePath().toString());
             return path.toAbsolutePath().toString();
@@ -714,10 +759,10 @@ class DollarRecognizer{
         this.participantId = participantId;
     }
 
-    String getRandomGesture(){ // all 160 in random : ALEX ANISHA
+    String getRandomGesture(){ // all 10*gestureList in random : ALEX ANISHA
         int index,count;
         do{
-            index = new Random().nextInt(16);
+            index = new Random().nextInt(gestureSetSize);
             count = currSampleCount.getOrDefault(gestureNames[index],0);
         } while(count>=maxSample);
 
