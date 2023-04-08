@@ -229,80 +229,92 @@ public class DollarRecognizerOffline {
         ArrayList <CandidateCompleteResults> resultLog = new ArrayList<>();
         int totalRuns = 0;
         // For each user
-        for(int u=1;u<=6;u++){
-            ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, u); // user numbers from 2 to 11; part 4 user number starts from 1
-            // For each example
-            for(int e=1;e<=9;e++){
-                // Repeat X times
-                for(int i=1;i<=10;i++){
-                    ArrayList <UnistrokeTemplate> candidateGestures = new ArrayList<>();
-                    ArrayList <UnistrokeTemplate> selectedTemplateGestures = new ArrayList<>();
-                    // For each gesture type
-                    for(int g=0;g<16;g++){
-                        ArrayList <UnistrokeTemplate> typeAndUserGestureList = filterGestureListByGestureType(userGestureList, g);
-                        ArrayList <Integer> randomGestureIndices = new ArrayList<>();
-                        while(randomGestureIndices.size()<e){
-                            int randomGestureIndex = (int)(Math.random()*10);
-                            if(!randomGestureIndices.contains(randomGestureIndex)){
-                                randomGestureIndices.add(randomGestureIndex);
-                            }
-                        }
-                        for(int j=0;j<randomGestureIndices.size();j++){
-                            // Gets the gesture that corresponds to the random index (index=iteration) in the type/user filtered gesture list
-                            
-                            //debugging :ANISHA 
-                            try{
-                                selectedTemplateGestures.add(typeAndUserGestureList.get(randomGestureIndices.get(j)));
-                            }catch(Exception ie){
-                                System.out.println("u : "+u + 
-                                                    " gesturelistsize "+gestureList.size()+
-                                                    " userGestureListsize "+userGestureList.size()+
-                                                    "\ne : "+e+
-                                                    "\ni : "+i+
-                                                    "\ng : "+g+
-                                                    " userGestureListsize "+userGestureList.size()+
-                                                    " typeAndUserGestureListsize "+typeAndUserGestureList.size()+
-                                                    "\nj : "+j);
-                                System.out.println("j "+j+" "+randomGestureIndices.get(j)+" "+randomGestureIndices.size()+" "+typeAndUserGestureList.size()+" "+g);
-                                ie.printStackTrace();
-                            }
-                        }
-                        
-                        UnistrokeTemplate candidateGesture = null;
-                        while (candidateGesture == null) {
-                            int candidateGestureIndex = (int)(Math.random()*10);
-                            if(!randomGestureIndices.contains(candidateGestureIndex)){
-                                candidateGesture = typeAndUserGestureList.get(candidateGestureIndex);
-                            }
-                        }
-                        // CandidateGestures + 1 candidate gesture, total of 16
-                        candidateGestures.add(candidateGesture);
+        for(int u=1;u<=5;u++){
+            //ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, u); // Proj. 2, user starts with 1
+            // Repeat x1 times
+            ArrayList <UnistrokeTemplate> candidateUsersGestures = new ArrayList<>();
+            ArrayList <UnistrokeTemplate> selectedTemplateUserGestures = new ArrayList<>();
+            for(int r=1;r<=10;r++){
+                ArrayList <Integer> randomUserIndices = new ArrayList<>();
+                while(randomUserIndices.size()<u){
+                    int randomUserIndex = (int)(Math.random()*6);
+                    if(!randomUserIndices.contains(randomUserIndex)){
+                        randomUserIndices.add(randomUserIndex);
                     }
-                    // For each candidate gesture
-                    for(int t=0;t<16;t++)
-                    {
-                        UnistrokeTemplate currentGesture = candidateGestures.get(t);
-                        CandidateCompleteResults currentResult = new CandidateCompleteResults();
-                        currentResult.candidateGesture = currentGesture;
-                        currentResult.randomIteration = i;
-                        currentResult.numberOfTrainingExamples = e;
-                        currentResult.totalSizeOfTrainingSet = e*16;
-                        
-                        
-                        // Assuming that the result will be an ArrayList of SingleMatchResult objects which have:
-                        // 1. The UnistrokeTemplate it scored against
-                        // 2. The score it got
-                        // The list will be ordered from highest to lowest score   
-                        
-                        currentResult.trainingSetResults = (ArrayList<SingleMatchResult>)GestureRecognizer.recognize(currentGesture.processedPoints, selectedTemplateGestures).get("N-BEST");
-                        currentResult.orderSingleMatchResults();
-                        totalRuns ++;
-                        if (totalRuns % 1000 == 0)
-                        {
-                            System.out.println("Total runs: " + totalRuns);
+                }
+                for(int l=0;l<randomUserIndices.size();l++){
+                    // Gets the gestures that correspond to the random index (index=user) in the gesture list
+                    ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, randomUserIndices.get(l));
+                    selectedTemplateUserGestures.addAll(userGestureList);
+                }
+
+                ArrayList <UnistrokeTemplate> candidateUserGestures = null;
+                while (candidateUserGestures == null) {
+                    int candidateUserIndex = (int)(Math.random()*6);
+                    if(!randomUserIndices.contains(candidateUserIndex)){
+                        candidateUserGestures = filterGestureListByUser(gestureList, candidateUserIndex);
+                    }
+                }
+                // CandidateGestures + 1 candidate gesture, total of 16
+                candidateUsersGestures.addAll(candidateUserGestures);
+
+                // For each example / sample
+                for(int e=1;e<=9;e++){
+                    // Repeat x2 times
+                    for(int i=1;i<=10;i++){
+                        ArrayList <UnistrokeTemplate> candidateGestures = new ArrayList<>();
+                        ArrayList <UnistrokeTemplate> selectedTemplateGestures = new ArrayList<>();
+                        // For each gesture type
+                        for(int g=0;g<16;g++){
+                            ArrayList <UnistrokeTemplate> typeAndUserGestureList = filterGestureListByGestureType(candidateUsersGestures, g);
+                            ArrayList <Integer> randomGestureIndices = new ArrayList<>();
+                            while(randomGestureIndices.size()<e){
+                                int randomGestureIndex = (int)(Math.random()*10);
+                                if(!randomGestureIndices.contains(randomGestureIndex)){
+                                    randomGestureIndices.add(randomGestureIndex);
+                                }
+                            }
+                            for(int j=0;j<randomGestureIndices.size();j++){
+                                // Gets the gesture that corresponds to the random index (index=iteration) in the type/user filtered gesture list
+                                selectedTemplateGestures.add(typeAndUserGestureList.get(randomGestureIndices.get(j)));
+
+                            }
+                            
+                            UnistrokeTemplate candidateGesture = null;
+                            while (candidateGesture == null) {
+                                int candidateGestureIndex = (int)(Math.random()*10);
+                                if(!randomGestureIndices.contains(candidateGestureIndex)){
+                                    candidateGesture = typeAndUserGestureList.get(candidateGestureIndex);
+                                }
+                            }
+                            // CandidateGestures + 1 candidate gesture, total of 16
+                            candidateGestures.add(candidateGesture);
                         }
-                        currentResult.trainingGesturesSet = selectedTemplateGestures;
-                        resultLog.add(currentResult);
+                        // For each candidate gesture
+                        for(int t=0;t<16;t++){
+                            UnistrokeTemplate currentGesture = candidateGestures.get(t);
+                            CandidateCompleteResults currentResult = new CandidateCompleteResults();
+                            currentResult.candidateGesture = currentGesture;
+                            currentResult.randomIteration = i;
+                            currentResult.numberOfTrainingExamples = e;
+                            currentResult.totalSizeOfTrainingSet = e*16;
+                        
+                        
+                            // Assuming that the result will be an ArrayList of SingleMatchResult objects which have:
+                            // 1. The UnistrokeTemplate it scored against
+                            // 2. The score it got
+                            // The list will be ordered from highest to lowest score   
+                        
+                            currentResult.trainingSetResults = (ArrayList<SingleMatchResult>)GestureRecognizer.recognize(currentGesture.processedPoints, selectedTemplateGestures).get("N-BEST");
+                            currentResult.orderSingleMatchResults();
+                            totalRuns ++;
+                            if (totalRuns % 1000 == 0)
+                            {
+                                System.out.println("Total runs: " + totalRuns);
+                            }
+                            currentResult.trainingGesturesSet = selectedTemplateGestures;
+                            resultLog.add(currentResult);
+                        }
                     }
                 }
             }
