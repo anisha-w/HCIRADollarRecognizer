@@ -513,7 +513,8 @@ class DollarRecognizer{
     static HashMap<String,Integer> currSampleCount = new HashMap<>();
     String currentGesture="";
     int currentSampleNum;
-    JLabel gestureCounterLabel, pleaseDrawLabel, gestureNameLabel;
+    JLabel gestureCounterLabel, gestureNameLabel;
+    JTextArea pleaseDrawtTextArea;
     JButton clearBtn, submitBtn;
         
     DollarRecognizer() 
@@ -542,26 +543,25 @@ class DollarRecognizer{
             homeFrame.setLocationRelativeTo(null);
 
             // Shows the unistrokes.png image in the right side of the homeFrame
-            ImageIcon icon = new ImageIcon("unistrokes.png");
-            JLabel imageLabel = new JLabel(icon);
-            imageLabel.setBounds(1024/2 + 30, 180, 449, 446);
-            homeFrame.add(imageLabel);
+            // ImageIcon icon = new ImageIcon("unistrokes.png");
+            // JLabel imageLabel = new JLabel(icon);
+            // imageLabel.setBounds(1024/2 + 30, 180, 449, 446);
+            // homeFrame.add(imageLabel);
 
-            
-
-            pleaseDrawLabel = new JLabel("Please draw the following gesture according to the guide:");
-            pleaseDrawLabel.setBounds(1024/2 + 20, 20, 500, 50);
-            pleaseDrawLabel.setFont(new Font("Serif", Font.PLAIN, 15));
-            homeFrame.add(pleaseDrawLabel);
+            pleaseDrawtTextArea = new JTextArea("Please draw the following gesture according to the guide: \nThe gesture should be a unistroke \n\nNote : Upper means Uppercase and lower means Lowercase");
+            pleaseDrawtTextArea.setBounds(1024/2 + 20, 50, 450, 100);
+            pleaseDrawtTextArea.setFont(new Font("Serif", Font.PLAIN, 15));
+            pleaseDrawtTextArea.setBackground(homeFrame.getBackground());
+            homeFrame.add(pleaseDrawtTextArea);
 
             gestureNameLabel = new JLabel(currentGesture);
-            gestureNameLabel.setBounds(1024/2 + 30, 60, 500, 50);
+            gestureNameLabel.setBounds(1024/2 + 30, 200, 500, 50);
             gestureNameLabel.setFont(new Font("Serif", Font.PLAIN, 20));
             homeFrame.add(gestureNameLabel);
 
             gestureCounter = 1;
             gestureCounterLabel = new JLabel("Gesture " + gestureCounter + " of " + maxSample);
-            gestureCounterLabel.setBounds(1024-100, 10, 100, 20);
+            gestureCounterLabel.setBounds(1024-100, 20, 100, 20);
             gestureCounterLabel.setFont(new Font("Serif", Font.PLAIN, 8));
             homeFrame.add(gestureCounterLabel);
 
@@ -609,7 +609,7 @@ class DollarRecognizer{
 
             gestureNameLabel.setText("Click \"Done\" to finish.");
             gestureCounterLabel.setText("");
-            pleaseDrawLabel.setText("Thank you for your participation!");
+            pleaseDrawtTextArea.setText("Thank you for your participation!");
 
             // Disable the canvas panel
             canvasWindow.setEnabled(false);
