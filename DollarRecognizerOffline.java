@@ -14,6 +14,10 @@ class CandidateCompleteResults
     public int randomIteration;
     public int numberOfTrainingExamples;
     public int totalSizeOfTrainingSet;
+
+    public int randomIterationParticipant;
+    public int numberOfParticipants;
+    public ArrayList<String> participantList;
     
     public ArrayList <UnistrokeTemplate> trainingGesturesSet;
 
@@ -53,6 +57,16 @@ class CandidateCompleteResults
         return gestureString;
     }
 
+    //participant list
+    public String generateParticipantList(){
+        String participantString = "{";
+        for(int i=0;i<participantList.size();i++)
+            participantString+=participantList.get(i)+",";
+        participantString=participantString.substring(0,participantString.length()-1)+"}";
+        return participantString;
+
+    }
+
     // Method to generate a String with the results of the recognition in CSV format
     public String generateCSVString(){
         String csvString = "";
@@ -64,7 +78,7 @@ class CandidateCompleteResults
             isCorrect = 1;
         }
 
-        csvString += candidateGesture.user + "," + candidateGesture.gestureType + "," 
+        csvString += numberOfParticipants+","+generateParticipantList()+","+randomIterationParticipant + "," + candidateGesture.user + "," + candidateGesture.gestureType + "," 
         + randomIteration + "," + numberOfTrainingExamples + "," + totalSizeOfTrainingSet // random iteration? repetition? number of training examples
         + ",\"" + generateTrainingSetResultsString() + "\",\""
         + generateGestureString(candidateGesture) + "\"," + bestGesture.gestureType + "," + isCorrect + ","
@@ -100,6 +114,7 @@ public class DollarRecognizerOffline {
         configDoc.getDocumentElement().normalize();
         gestureSetName = configDoc.getElementsByTagName("gestureSet").item(0).getTextContent();
 
+
         ArrayList <UnistrokeTemplate> gestureList;
         populateGestureTypes();
         gestureList = extractDataFromXML();
@@ -113,13 +128,15 @@ public class DollarRecognizerOffline {
         gestureSetSize = Integer.parseInt(configDoc.getElementsByTagName(gestureSetName+"Size").item(0).getTextContent());
         gestureTypes = new Hashtable<String, Integer>();
 
-        NodeList gestureList =  configDoc.getDocumentElement().getElementsByTagName(gestureSetName);
+        Element gestureListElement = (Element) configDoc.getDocumentElement().getElementsByTagName(gestureSetName).item(0);
+        NodeList gestureList = gestureListElement.getElementsByTagName("gesture");
         for (int i =0; i < gestureList.getLength() ; i++) {
             Element nNode = (Element) gestureList.item(i);
             String name= nNode.getElementsByTagName("name").item(0).getTextContent();
             Integer value = Integer.parseInt(nNode.getElementsByTagName("value").item(0).getTextContent());
             gestureTypes.put(name, value);
         }
+
     }
 
     // Method to extract data from an XML, returns a single UnistrokeTemplate object
@@ -234,29 +251,36 @@ public class DollarRecognizerOffline {
             // Repeat x1 times
             ArrayList <UnistrokeTemplate> candidateUsersGestures = new ArrayList<>();
             ArrayList <UnistrokeTemplate> selectedTemplateUserGestures = new ArrayList<>();
+
+            //random100 iterator / random10 iterator 
             for(int r=1;r<=10;r++){
                 ArrayList <Integer> randomUserIndices = new ArrayList<>();
+
+                //randomly select u users/participants
                 while(randomUserIndices.size()<u){
-                    int randomUserIndex = (int)(Math.random()*6);
+                    int randomUserIndex = (int)(Math.random()*6) + 1;
                     if(!randomUserIndices.contains(randomUserIndex)){
                         randomUserIndices.add(randomUserIndex);
                     }
                 }
+
+                //for each of these selected users filter the users gestures from all the gestures 
                 for(int l=0;l<randomUserIndices.size();l++){
                     // Gets the gestures that correspond to the random index (index=user) in the gesture list
                     ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, randomUserIndices.get(l));
-                    selectedTemplateUserGestures.addAll(userGestureList);
+                    selectedTemplateUserGestures.addAll(userGestureList); // size =  u * number of gestures 
                 }
 
+                //candiate user
                 ArrayList <UnistrokeTemplate> candidateUserGestures = null;
                 while (candidateUserGestures == null) {
-                    int candidateUserIndex = (int)(Math.random()*6);
+                    int candidateUserIndex = (int)(Math.random()*6)+1;
                     if(!randomUserIndices.contains(candidateUserIndex)){
                         candidateUserGestures = filterGestureListByUser(gestureList, candidateUserIndex);
                     }
                 }
                 // CandidateGestures + 1 candidate gesture, total of 16
-                candidateUsersGestures.addAll(candidateUserGestures);
+                //candidateUsersGestures.addAll(candidateUserGestures); //ANISHA ??
 
                 // For each example / sample
                 for(int e=1;e<=9;e++){
@@ -265,19 +289,28 @@ public class DollarRecognizerOffline {
                         ArrayList <UnistrokeTemplate> candidateGestures = new ArrayList<>();
                         ArrayList <UnistrokeTemplate> selectedTemplateGestures = new ArrayList<>();
                         // For each gesture type
-                        for(int g=0;g<16;g++){
-                            ArrayList <UnistrokeTemplate> typeAndUserGestureList = filterGestureListByGestureType(candidateUsersGestures, g);
+                        for(int g=0;g<gestureSetSize;g++){
+                            ArrayList <UnistrokeTemplate> typeAndUserGestureList = filterGestureListByGestureType(candidateUserGestures, g);  
                             ArrayList <Integer> randomGestureIndices = new ArrayList<>();
+
+                            // e samples for each gesture for each user. 
                             while(randomGestureIndices.size()<e){
-                                int randomGestureIndex = (int)(Math.random()*10);
+                                int randomGestureIndex = (int)(Math.random()*10); //10 = number of samples
                                 if(!randomGestureIndices.contains(randomGestureIndex)){
                                     randomGestureIndices.add(randomGestureIndex);
                                 }
                             }
+
+
                             for(int j=0;j<randomGestureIndices.size();j++){
                                 // Gets the gesture that corresponds to the random index (index=iteration) in the type/user filtered gesture list
-                                selectedTemplateGestures.add(typeAndUserGestureList.get(randomGestureIndices.get(j)));
-
+                                try{selectedTemplateGestures.add(selectedTemplateUserGestures.get(randomGestureIndices.get(j)));
+                                }catch(Exception exp){
+                                    
+                                    System.out.println("ANISHA exception"+u+" "+r+" "+e+" "+g+" "+j+" "+typeAndUserGestureList.size());
+                                    
+                                    throw exp;
+                                }
                             }
                             
                             UnistrokeTemplate candidateGesture = null;
@@ -291,14 +324,21 @@ public class DollarRecognizerOffline {
                             candidateGestures.add(candidateGesture);
                         }
                         // For each candidate gesture
-                        for(int t=0;t<16;t++){
+                        for(int t=0;t<gestureSetSize;t++){
                             UnistrokeTemplate currentGesture = candidateGestures.get(t);
                             CandidateCompleteResults currentResult = new CandidateCompleteResults();
                             currentResult.candidateGesture = currentGesture;
                             currentResult.randomIteration = i;
                             currentResult.numberOfTrainingExamples = e;
-                            currentResult.totalSizeOfTrainingSet = e*16;
-                        
+                            currentResult.totalSizeOfTrainingSet = e*gestureSetSize;
+
+                            //Adding user list details
+                            currentResult.numberOfParticipants = u;
+                            currentResult.randomIterationParticipant = r;
+                            currentResult.participantList = new ArrayList<>();
+                            for (Integer userIndex : randomUserIndices) {
+                                currentResult.participantList.add(userIndex+"");
+                            }
                         
                             // Assuming that the result will be an ArrayList of SingleMatchResult objects which have:
                             // 1. The UnistrokeTemplate it scored against
@@ -329,7 +369,7 @@ public class DollarRecognizerOffline {
         bw.write("Recognition Log: A.Barquero & A.Wadhwani // $1 // Washington $1 Unistroke gesture logs // User-Dependent Random-100 Offline Recognizer");
         bw.newLine();
         bw.newLine();
-        bw.write("User[all-users],GestureType[all-gestures-types],RandomIteration[1to100],#ofTrainingExamples[E],TotalSizeOfTrainingSet[count],TrainingSetContents[specific-gesture-instances],Candidate[specific-instance],RecoResultGestureType[what-was-recognized],CorrectIncorrect[1or0],RecoResultScore,RecoResultBestMatch[specific-instance],RecoResultNBestSorted[instance-and-score]");
+        bw.write("#Number of Users,User list,RandomIteration [User],Candidate User,GestureType[all-gestures-types],RandomIteration[1to100],#ofTrainingExamples[E],TotalSizeOfTrainingSet[count],TrainingSetContents[specific-gesture-instances],Candidate[specific-instance],RecoResultGestureType[what-was-recognized],CorrectIncorrect[1or0],RecoResultScore,RecoResultBestMatch[specific-instance],RecoResultNBestSorted[instance-and-score]");
         bw.newLine();
 
         int totalCorrect = 0;

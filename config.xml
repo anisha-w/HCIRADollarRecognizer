@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-   <templatePath>/Project1Part5_Resources/xml_logs</templatePath>
+   <templatePath>/Project2_Resources/xml_logs</templatePath>
    <storeTemplatePath>/templateData</storeTemplatePath>
    <gestureSet>gestureSetP2</gestureSet>
    <gestureSetP1Size>16</gestureSetP1Size>
