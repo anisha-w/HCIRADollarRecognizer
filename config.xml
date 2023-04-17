@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
    <templatePath>/Project2_Resources/xml_logs</templatePath>
+   <onlineRecognizerTemplatePath>/Project2_Resources/online_template</onlineRecognizerTemplatePath>
    <storeTemplatePath>/templateData</storeTemplatePath>
    <gestureSet>gestureSetP2</gestureSet>
    <gestureSetP1Size>16</gestureSetP1Size>

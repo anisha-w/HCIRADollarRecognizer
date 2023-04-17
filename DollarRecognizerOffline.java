@@ -270,6 +270,7 @@ public class DollarRecognizerOffline {
 
     public static void randomOfflineRecognizer(ArrayList <UnistrokeTemplate> gestureList) throws Exception{
 
+        System.out.println("STARTING USER-DEPENDENT ANALYSIS");
         ArrayList <CandidateCompleteResults> resultLog = new ArrayList<>();
         int totalRuns = 0;
         // For each user
@@ -278,11 +279,11 @@ public class DollarRecognizerOffline {
             // For each example
             for(int e=1;e<=9;e++){
                 // Repeat X times
-                for(int i=1;i<=10;i++){
+                for(int i=1;i<=100;i++){ //RandomIterator
                     ArrayList <UnistrokeTemplate> candidateGestures = new ArrayList<>();
                     ArrayList <UnistrokeTemplate> selectedTemplateGestures = new ArrayList<>();
                     // For each gesture type
-                    for(int g=0;g<16;g++){
+                    for(int g=0;g<gestureSetSize;g++){
                         ArrayList <UnistrokeTemplate> typeAndUserGestureList = filterGestureListByGestureType(userGestureList, g);
                         ArrayList <Integer> randomGestureIndices = new ArrayList<>();
                         while(randomGestureIndices.size()<e){
@@ -323,14 +324,14 @@ public class DollarRecognizerOffline {
                         candidateGestures.add(candidateGesture);
                     }
                     // For each candidate gesture
-                    for(int t=0;t<16;t++)
+                    for(int t=0;t<gestureSetSize;t++)
                     {
                         UnistrokeTemplate currentGesture = candidateGestures.get(t);
                         CandidateCompleteResults currentResult = new CandidateCompleteResults();
                         currentResult.candidateGesture = currentGesture;
                         currentResult.randomIteration = i;
                         currentResult.numberOfTrainingExamples = e;
-                        currentResult.totalSizeOfTrainingSet = e*16;
+                        currentResult.totalSizeOfTrainingSet = e*gestureSetSize;
                         
                         
                         // Assuming that the result will be an ArrayList of SingleMatchResult objects which have:
@@ -352,8 +353,9 @@ public class DollarRecognizerOffline {
             }
         }
         
+        
         System.out.println("Total runs: " + totalRuns);
-        String fileName = "1dollarLog_" + System.currentTimeMillis() + ".csv";
+        String fileName = "1dollarLog_UserDependent_" + System.currentTimeMillis() + ".csv";
         File file = new File(fileName);
         file.createNewFile();
         FileWriter fw = new FileWriter(file);
@@ -412,6 +414,7 @@ public class DollarRecognizerOffline {
     // Method to perform the random offline recognizer
     public static void randomOfflineRecognizerUserIndependent(ArrayList <UnistrokeTemplate> gestureList) throws Exception{
 
+        System.out.println("STARTING USER-INDEPENDENT ANALYSIS");
         ArrayList <CandidateCompleteResults> resultLog = new ArrayList<>();
         int totalRuns = 0;
         // For each user
@@ -446,7 +449,7 @@ public class DollarRecognizerOffline {
                 // For each example / sample
                 for(int e=1;e<=9;e++){
                     // Repeat x2 times
-                    for(int i=1;i<=10;i++){
+                    for(int i=1;i<=10;i++){ //RandomIterator
                         ArrayList <UnistrokeTemplate> candidateGestures = new ArrayList<>();
                         ArrayList <UnistrokeTemplate> selectedTemplateGestures = new ArrayList<>();
                         // For each gesture type
@@ -536,12 +539,12 @@ public class DollarRecognizerOffline {
         }
         
         System.out.println("Total runs: " + totalRuns);
-        String fileName = "1dollarLog_" + System.currentTimeMillis() + ".csv";
+        String fileName = "1dollarLog_UserIndependent_" + System.currentTimeMillis() + ".csv";
         File file = new File(fileName);
         file.createNewFile();
         FileWriter fw = new FileWriter(file);
         BufferedWriter bw = new BufferedWriter(fw);
-        bw.write("Recognition Log: A.Barquero & A.Wadhwani // $1 // Washington $1 Unistroke gesture logs // User-Dependent Random-100 Offline Recognizer");
+        bw.write("Recognition Log: A.Barquero & A.Wadhwani // $1 // Washington $1 Unistroke gesture logs // User-Independent Random-100 Offline Recognizer");
         bw.newLine();
         bw.newLine();
         bw.write("#Number of Users,User list,RandomIteration [User],Candidate User,GestureType[all-gestures-types],RandomIteration[1to100],#ofTrainingExamples[E],TotalSizeOfTrainingSet[count],TrainingSetContents[specific-gesture-instances],Candidate[specific-instance],RecoResultGestureType[what-was-recognized],CorrectIncorrect[1or0],RecoResultScore,RecoResultBestMatch[specific-instance],RecoResultNBestSorted[instance-and-score]");
@@ -576,7 +579,7 @@ public class DollarRecognizerOffline {
         for (Map.Entry<String, Integer> entry : gestureAverageAccuracy.entrySet()) {
             //bw.write("User" + entry.getKey() + "AvgAccuracy," + entry.getValue());
             bw.write("Gesture " + entry.getKey() + " AvgAccuracy," + entry.getValue()/(1.0*numberOfTestcases));
-            System.out.println("Gesture " + entry.getKey() + " AvgAccuracy," + entry.getValue()/(1.0*numberOfTestcases));
+            //System.out.println("Gesture " + entry.getKey() + " AvgAccuracy," + entry.getValue()/(1.0*numberOfTestcases));
             bw.newLine();
         }
         double totalAverageAccuracy = (totalCorrect / (double)resultLog.size()) * 100;
