@@ -15,6 +15,7 @@ class CandidateCompleteResults
     public int numberOfTrainingExamples;
     public int totalSizeOfTrainingSet;
 
+	//Adding additional variables to keep track of participant list and random100 iterator for user
     public int randomIterationParticipant;
     public int numberOfParticipants;
     public ArrayList<String> participantList;
@@ -57,7 +58,7 @@ class CandidateCompleteResults
         return gestureString;
     }
 
-    //participant list
+    //print participant list
     public String generateParticipantList(){
         String participantString = "{";
         for(int i=0;i<participantList.size();i++)
@@ -96,6 +97,7 @@ class CandidateCompleteResults
         return false;
     }
 
+	//return bestGesture
     public UnistrokeTemplate getBestGesture(){
         return trainingSetResults.get(0).templateGesture;
     }
@@ -106,13 +108,15 @@ public class DollarRecognizerOffline {
 
     public static Hashtable<String, Integer> gestureTypes;
 
-    static String gestureSetName;
-    static int gestureSetSize;
+	//Adding varaibles to read the project setup from config file instead of hardcoded values
+    static String gestureSetName; 
+    static int gestureSetSize; //how many gestures in the set (10 or 16)
     static Document configDoc;
 
     // Constructor
     DollarRecognizerOffline() throws Exception{
         
+		//Read gestureSet name from config file 
         configDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File("config.xml"));
         configDoc.getDocumentElement().normalize();
         gestureSetName = configDoc.getElementsByTagName("gestureSet").item(0).getTextContent();
@@ -128,6 +132,7 @@ public class DollarRecognizerOffline {
     // Method to populate the gesture types
     public void populateGestureTypes(){
 
+		//Read list of gestures from config file
         gestureSetSize = Integer.parseInt(configDoc.getElementsByTagName(gestureSetName+"Size").item(0).getTextContent());
         gestureTypes = new Hashtable<String, Integer>();
 
@@ -186,6 +191,7 @@ public class DollarRecognizerOffline {
         //System.out.println("xmlDir.getAbsoluteFile().exists(): " + xmlDir.getAbsoluteFile().exists());
         //System.out.println("user.dir: " + System.getProperty("user.dir"));
         
+		//read folder name from config file instead of hardcoded.
         File xmlDir = new File(xmlDirPath + configDoc.getDocumentElement().getElementsByTagName("templatePath").item(0).getTextContent()); //ANIHSA : MAKE A MORE GENERIC PATH
         
         System.out.println("xmlDir.getAbsolutePath: " + xmlDir.getAbsolutePath());
