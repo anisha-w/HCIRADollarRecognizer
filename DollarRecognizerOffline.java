@@ -78,7 +78,7 @@ class CandidateCompleteResults
             isCorrect = 1;
         }
 
-        csvString += numberOfParticipants+","+generateParticipantList()+","+randomIterationParticipant + "," + candidateGesture.user + "," + candidateGesture.gestureType + "," 
+        csvString += numberOfParticipants+",\""+generateParticipantList()+"\","+randomIterationParticipant + "," + candidateGesture.user + "," + candidateGesture.gestureType + "," 
         + randomIteration + "," + numberOfTrainingExamples + "," + totalSizeOfTrainingSet // random iteration? repetition? number of training examples
         + ",\"" + generateTrainingSetResultsString() + "\",\""
         + generateGestureString(candidateGesture) + "\"," + bestGesture.gestureType + "," + isCorrect + ","
@@ -96,6 +96,9 @@ class CandidateCompleteResults
         return false;
     }
 
+    public UnistrokeTemplate getBestGesture(){
+        return trainingSetResults.get(0).templateGesture;
+    }
 }
 
 
@@ -249,8 +252,6 @@ public class DollarRecognizerOffline {
         for(int u=1;u<=5;u++){
             //ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, u); // Proj. 2, user starts with 1
             // Repeat x1 times
-            ArrayList <UnistrokeTemplate> candidateUsersGestures = new ArrayList<>();
-            ArrayList <UnistrokeTemplate> selectedTemplateUserGestures = new ArrayList<>();
 
             //random100 iterator / random10 iterator 
             for(int r=1;r<=10;r++){
@@ -264,12 +265,6 @@ public class DollarRecognizerOffline {
                     }
                 }
 
-                //for each of these selected users filter the users gestures from all the gestures 
-                for(int l=0;l<randomUserIndices.size();l++){
-                    // Gets the gestures that correspond to the random index (index=user) in the gesture list
-                    ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, randomUserIndices.get(l));
-                    selectedTemplateUserGestures.addAll(userGestureList); // size =  u * number of gestures 
-                }
 
                 //candiate user
                 ArrayList <UnistrokeTemplate> candidateUserGestures = null;
@@ -290,9 +285,8 @@ public class DollarRecognizerOffline {
                         ArrayList <UnistrokeTemplate> selectedTemplateGestures = new ArrayList<>();
                         // For each gesture type
                         for(int g=0;g<gestureSetSize;g++){
-                            ArrayList <UnistrokeTemplate> typeAndUserGestureList = filterGestureListByGestureType(candidateUserGestures, g);  
-                            ArrayList <Integer> randomGestureIndices = new ArrayList<>();
 
+                            ArrayList <Integer> randomGestureIndices = new ArrayList<>();
                             // e samples for each gesture for each user. 
                             while(randomGestureIndices.size()<e){
                                 int randomGestureIndex = (int)(Math.random()*10); //10 = number of samples
@@ -301,28 +295,43 @@ public class DollarRecognizerOffline {
                                 }
                             }
 
-
-                            for(int j=0;j<randomGestureIndices.size();j++){
-                                // Gets the gesture that corresponds to the random index (index=iteration) in the type/user filtered gesture list
-                                try{selectedTemplateGestures.add(selectedTemplateUserGestures.get(randomGestureIndices.get(j)));
-                                }catch(Exception exp){
-                                    
-                                    System.out.println("ANISHA exception"+u+" "+r+" "+e+" "+g+" "+j+" "+typeAndUserGestureList.size());
-                                    
-                                    throw exp;
+                            ArrayList <UnistrokeTemplate> userAllGestureList ;
+                            //for each of these selected users (randomUserIndices) filter the users gestures from all the xmls 
+                            for(int l=0;l<randomUserIndices.size();l++){
+                                // Gets the gestures that correspond to the random index (index=user) in the gesture list
+                                userAllGestureList = filterGestureListByUser(gestureList, randomUserIndices.get(l)); //
+                                //selectedTemplateUserGestures.addAll(userGestureList); // size =  u * number of gestures 
+                                ArrayList <UnistrokeTemplate> userEachGestureList = filterGestureListByGestureType(userAllGestureList, g);  // all samples for 1 gesture g
+                            
+                                for(int j=0;j<randomGestureIndices.size();j++){ // e samples for each user
+                                    // Gets the gesture that corresponds to the random index (index=iteration) in the type/user filtered gesture list
+                                    try{ //ANISHA : REMOVE
+                                        selectedTemplateGestures.add(userEachGestureList.get(randomGestureIndices.get(j))); // selectedTemplateGestures = u users * 10 gestures * e samples 
+                                    }catch(Exception exp){
+                                        
+                                        //System.out.println("ANISHA exception"+u+" "+r+" "+e+" "+g+" "+j+" "+typeAndUserGestureList.size());
+                                        
+                                        throw exp;
+                                    }
                                 }
                             }
+
+                            ArrayList <UnistrokeTemplate> candidateGestureList = filterGestureListByGestureType(candidateUserGestures, g);  // all samples for 1 gesture g
                             
+                            //get one random sample for testing from the candidate user for the gesture g 
                             UnistrokeTemplate candidateGesture = null;
                             while (candidateGesture == null) {
                                 int candidateGestureIndex = (int)(Math.random()*10);
                                 if(!randomGestureIndices.contains(candidateGestureIndex)){
-                                    candidateGesture = typeAndUserGestureList.get(candidateGestureIndex);
+                                    candidateGesture = candidateGestureList.get(candidateGestureIndex);
                                 }
                             }
-                            // CandidateGestures + 1 candidate gesture, total of 16
-                            candidateGestures.add(candidateGesture);
+                            // CandidateGestures + 1 candidate gesture, total of 16 for project 1
+                            candidateGestures.add(candidateGesture); // has 1 sample of each gesture ; total 10 for project 2
                         }
+
+                        //System.out.println("[DEBUG] : selectedTemplateGestures COUNT(u users * 10 gestures * e samples ) "+ selectedTemplateGestures.size() + " ; U = "+u +" ; E= "+e);
+
                         // For each candidate gesture
                         for(int t=0;t<gestureSetSize;t++){
                             UnistrokeTemplate currentGesture = candidateGestures.get(t);
@@ -330,7 +339,7 @@ public class DollarRecognizerOffline {
                             currentResult.candidateGesture = currentGesture;
                             currentResult.randomIteration = i;
                             currentResult.numberOfTrainingExamples = e;
-                            currentResult.totalSizeOfTrainingSet = e*gestureSetSize;
+                            currentResult.totalSizeOfTrainingSet = u * e * gestureSetSize; // size of selectedTemplateGestures
 
                             //Adding user list details
                             currentResult.numberOfParticipants = u;
@@ -372,43 +381,36 @@ public class DollarRecognizerOffline {
         bw.write("#Number of Users,User list,RandomIteration [User],Candidate User,GestureType[all-gestures-types],RandomIteration[1to100],#ofTrainingExamples[E],TotalSizeOfTrainingSet[count],TrainingSetContents[specific-gesture-instances],Candidate[specific-instance],RecoResultGestureType[what-was-recognized],CorrectIncorrect[1or0],RecoResultScore,RecoResultBestMatch[specific-instance],RecoResultNBestSorted[instance-and-score]");
         bw.newLine();
 
+
+        //updating user accuracy calculation to gesture accuracy calculation.
         int totalCorrect = 0;
-        int userCorrect = 0;
-        int currentUser = 0;
-        int userCounter = 0;
-        double userAccuracy = 0;
-        Map<Integer, Double> localAverageAccuracy = new HashMap<>();
+        // int userCorrect = 0;
+        // int currentUser = 0;
+        // int userCounter = 0;
+        // double userAccuracy = 0;
+        int numberOfTestcases = resultLog.size()/10; //since 10 gestures 
+        
+        //Map<Integer, Double> localAverageAccuracy = new HashMap<>();
+        Map<String, Integer> gestureAverageAccuracy = new HashMap<>();
 
         for(int i=0;i<resultLog.size();i++){
-            userCounter ++;
-            if (i==0) 
-            {
-                currentUser = resultLog.get(i).candidateGesture.user;
-            }
+           
             bw.write(resultLog.get(i).generateCSVString());
             if (resultLog.get(i).isCorrect()) {
                 totalCorrect++;
-                userCorrect++;
-            }
-            if (resultLog.get(i).candidateGesture.user != currentUser)
-            {
-                userAccuracy = (userCorrect / (double)(userCounter)) * 100;
-                //bw.write("LocalAvgAccuracy," + userAccuracy);
-                //bw.newLine();
-                localAverageAccuracy.put(currentUser, userAccuracy);
-                userCorrect = 0;
-                userCounter = 0;
-                currentUser = resultLog.get(i).candidateGesture.user;
+                int gestureCorrectCount = gestureAverageAccuracy.getOrDefault(resultLog.get(i).getBestGesture().gestureType,0);
+                gestureCorrectCount++;
+                gestureAverageAccuracy.put(resultLog.get(i).getBestGesture().gestureType, gestureCorrectCount);
             }
             bw.newLine();
         }
-        userAccuracy = (userCorrect / (double)(userCounter)) * 100;
-        localAverageAccuracy.put(currentUser, userAccuracy);
-
+        
         bw.newLine();
 
-        for (Map.Entry<Integer, Double> entry : localAverageAccuracy.entrySet()) {
-            bw.write("User" + entry.getKey() + "AvgAccuracy," + entry.getValue());
+        for (Map.Entry<String, Integer> entry : gestureAverageAccuracy.entrySet()) {
+            //bw.write("User" + entry.getKey() + "AvgAccuracy," + entry.getValue());
+            bw.write("Gesture " + entry.getKey() + " AvgAccuracy," + entry.getValue()/(1.0*numberOfTestcases));
+            System.out.println("Gesture " + entry.getKey() + " AvgAccuracy," + entry.getValue()/(1.0*numberOfTestcases));
             bw.newLine();
         }
         double totalAverageAccuracy = (totalCorrect / (double)resultLog.size()) * 100;
