@@ -59,6 +59,24 @@ java DollarRecognizer
 java DollarRecognizerOffline
 ```  
 
+## Implementation
+
+#### Unistroke Gestures 
+![unistrokes](https://github.com/alebar000/HCIRADollarRecognizer/assets/36306448/b014c199-89ae-43b4-84b8-42e223fb69d4)
+
+#### Online Recognizer GUI
+<img width="263" alt="image" src="https://github.com/alebar000/HCIRADollarRecognizer/assets/36306448/5f10e6bb-9f97-4b04-b137-039f40abc57f">
+
+#### Data Collection GUI 
+<img width="384" alt="image" src="https://github.com/alebar000/HCIRADollarRecognizer/assets/36306448/54d14442-39d7-49f1-81a7-afed13de8b2c">
+
+
+## Analysis and Results 
+
+#### Offline Recognition Test Recognition Accuracy
+![image](https://github.com/alebar000/HCIRADollarRecognizer/assets/36306448/e8cd4b6e-9df0-435d-824d-d3bbc3c0a9aa)
+
+
 # References:
 
 #### $1 Algorithm:
