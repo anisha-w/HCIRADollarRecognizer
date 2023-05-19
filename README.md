@@ -27,16 +27,16 @@ The goal of the project is to implement the $1 Gesture recognizer algorithm for 
 
 #### Project milestones
 The project has been divided into 5 milestones to build the complete system 
-Part 1 : Drawing on a Canvas 
-Part 2 : Online/Live Recognition 
-Part 3 : Offline/Test Recognition with $1 
-Part 4 : Collecting Data from People 
-Part 5 : Exploring Data from People 
+- Part 1 : Drawing on a Canvas 
+- Part 2 : Online/Live Recognition 
+- Part 3 : Offline/Test Recognition with $1 
+- Part 4 : Collecting Data from People 
+- Part 5 : Exploring Data from People 
 
 ## System
-Language : Java 
-IDE : Microsoft Visual Studio Code 
-Version Control : Github repository
+Language : Java   
+IDE : Microsoft Visual Studio Code   
+Version Control : Github repository   
 
 ## Installation and Execution
 
