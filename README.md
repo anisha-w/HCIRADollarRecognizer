@@ -1,10 +1,13 @@
 ### Alexander Barquero & Anisha Wadhwani
-Project #1: Part 4: Collecting Data from People
+
+# Project #1: Part 5: Exploring Data from People 
 ### CIS6930: HCIRA
 
 # Introduction
 We present our implementation of the $1 Recognizer, based on the work done by Wobbrock, Wilson and Li.
-In this Part 4, we implement the data collection version of the $1 Recognizer. A new option is added to the existing recognizer system, where the user can choose to either use or collect_data. In data collection mode, the participant id and number of samples per user is taken and then the user is shown the gesture name and a sample drawing for reference. This data is stored in xml files. 
+
+In this Part 5, we run the Offline version (Part 3) of the $1 Recognizer on the dataset we collect in Part 4 of the project. The log file is generated and accuarcy is calculated. As the second objective of this deliverable, we feed our dataset into the GHOST toolkit and compute heatmaps and draw insights about user articulation variability 
+
 
 # System
 The application was developed using the Java language, specifically with the Java Standard Edition 18 SDK. 
@@ -25,41 +28,29 @@ java DollarRecognizer
 
 # Application Features
 
-- Fourth version adequately running on a Java environment.
-- Collect data and Use options displayed
-- Participant ID and number of samples taken
-- Gesture name, reference image and counter for how much gestures have been drawn yet are displayed. 
-- Clear and Submit buttons displayed for user. Clear allows user to redraw, and submit stores the data in XML. 
-- In case user hits submit without drawing, a popup message is displayed requesting the user to draw. 
+- Fifth version adequately running on a Java environment.
+- Log File generated correctly 
+- Computed Heatmaps using GHOST toolkit. 
 
 # Goals and Coding Features
 
-## Part 4
+## Part 5
 
-## a) update your GUI canvas code to write the gesture the user draws to a file;
-### File DollarRecognizer; Method main (line 736, 761)
-Display Options "collect data" and use.
-Collect Data option allows the data collection for a user with participant id i and number of samples. 
-Clear button and submit button added to UI.
-If submit is pressed without drawing, a popup is shown “Please draw something before submitting”
+## a) Run an offline recognition test with $1 (using your code from Part 3) on your new dataset (from Part 4) 
+Executed. Few changes made to execute the existing code (part 3) inorder to commodate the differences in naming convention of the two datasets (part 3 and part 4) (line 119,112,115,119)
 
+## b) Output the result of the recognition tests to a log file 
+### Fixes for logfile format : Traning set order fixed  
+#### File DollarRecognizerOffline; Method generateTrainingSetResultsString() (line 31)
+Printing training set into the csv file. [ Reason for fix : Initially training set was printed by printing the template names from the same object as for complete N-best list and hence ordering was different each time since it was ordered by the score]
 
-## b) add prompts to the user to draw 10 samples of each gesture type one at a time (and write them to files)
-### File DollarRecognizer; getRandomGesture (line 717)
-This function will randomly select a gesture name to be displayed for the user. Keeps track of the number of samples already taken for the gesture and will randomly keep selecting a new gesture if the initially selected gesture is already been selected n times. (in our case n is 10)
-Function called during initialziation (line 804) and then everytime user hits submit button ( line 676 )
+## c) Run your data through the GHOST heatmap toolkit  
+Dataset fed into the toolkit; Settings done as required; computed heatmaps
 
+## d) Extract User Articulation Insights
+(1) : Heatmaps suggest that gestures with straight lines and a low angle number (1, 2) tend to have less variability. This is observed specially in the middle section of the straight lines. This is the case for the V, the caret, both square brackets, and the check. Whereas gestures like the triangle, which also has straight lines, does not exhibit such noticeable behaviour, and instead presents lots of variations in the angles.
 
-## c) recruit 6 people to provide gesture samples for your project  
-### Not on code. Included consent forms.
-The participant ID (Line 773) and Number of Samples are entered through the UI (line 782)
-
-
-## d) submit your full dataset.
-### File DollarRecognizer; createDirectory (line 692), storeInFile (line 427)
-Directory created at initialisation (line 557) and xml files created when submit hit (line 676)
-
-
+(2) The heatmaps also suggest that the arrow and pigtail gestures experienced a considerable variance in the way they were started and ended, in terms of the angle and point of origin/end.
 
 # License
 MIT
