@@ -1,10 +1,13 @@
 ### Alexander Barquero & Anisha Wadhwani
+
 # Project #1: Part 5: Exploring Data from People 
 ### CIS6930: HCIRA
 
 # Introduction
 We present our implementation of the $1 Recognizer, based on the work done by Wobbrock, Wilson and Li.
+
 In this Part 5, we run the Offline version (Part 3) of the $1 Recognizer on the dataset we collect in Part 4 of the project. The log file is generated and accuarcy is calculated. As the second objective of this deliverable, we feed our dataset into the GHOST toolkit and compute heatmaps and draw insights about user articulation variability 
+
 
 # System
 The application was developed using the Java language, specifically with the Java Standard Edition 18 SDK. 
@@ -19,8 +22,8 @@ You can run the system from any Java enabled IDE, by using the standard running 
 If you want to run from a console, you also need to make sure you have Java compiling and runtime capabilities in your computer. Once that is done, please navigate to the folder root where the .java files are located, and execute the following commands in order:  
 
 ```sh
-javac DollarRecognizerOffline.java
-java DollarRecognizerOffline
+javac DollarRecognizer.java
+java DollarRecognizer
 ```
 
 # Application Features
