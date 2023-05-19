@@ -1,57 +1,74 @@
+
 ### Alexander Barquero & Anisha Wadhwani
 
-# Project #1: Part 5: Exploring Data from People 
-### CIS6930: HCIRA
+# Project #1 : Implement $1 Gesture Recognition Algorithm
+#### Course : CIS6930: Human-Centered Input Recognition Algorithms (HCIRA)
 
-# Introduction
+## Introduction
 We present our implementation of the $1 Recognizer, based on the work done by Wobbrock, Wilson and Li.
 
-In this Part 5, we run the Offline version (Part 3) of the $1 Recognizer on the dataset we collect in Part 4 of the project. The log file is generated and accuarcy is calculated. As the second objective of this deliverable, we feed our dataset into the GHOST toolkit and compute heatmaps and draw insights about user articulation variability 
+## Problem Statement
+The goal of the project is to implement the $1 Gesture recognizer algorithm for the 16 gestures given below. Additionally the project goals comprises of the following:
+- Developing an Offline recognition module for analysis.
+- Developing a module to collect data from users for offline analysis. 
 
+#### Features of the Online/Live Recognizer GUI system: 
+- The system identifies 16 specified unistroke gestures.
+- Users can draw gestures on the canvas using a mouse, stylus, or finger.
+- The system considers the gesture drawing complete as soon as the user lifts their pen or releases their mouse.
+- Upon completing a gesture, the system promptly displays the recognized gesture name along with a similarity score, indicating the degree of match with known gestures.
+- The system includes a Clear button that allows users to easily clean the screen, providing a fresh canvas for drawing new gestures.
 
-# System
-The application was developed using the Java language, specifically with the Java Standard Edition 18 SDK. 
-Implementation was done in Microsoft Visual Studio Code, which is a simple but powerful solution that supports all the necessary IDE features that our team requires for this particular endeavor.
-We use a Github repository for source code version control.
+#### Features of the User Data Collection GUI system:
+- Gesture name, reference image and counter for how much gestures have been drawn yet are displayed.
+- Gesture types are collected in a random order to accommodate for user fatigue.
+- Clear and Submit buttons displayed for user. Clear allows user to redraw, and submit stores the data in XML. 
+- In case user hits submit without drawing, a popup message is displayed requesting the user to draw.
 
+#### Project milestones
+The project has been divided into 5 milestones to build the complete system
+Part 1 : Drawing on a Canvas
+Part 2 : Online/Live Recognition
+Part 3 : Offline/Test Recognition with $1
+Part 4 : Collecting Data from People
+Part 5 : Exploring Data from People
 
-# Instalation and Execution
+## System
+Language : Java 
+IDE : Microsoft Visual Studio Code
+Version Control : Github repository
 
-You can run the system from any Java enabled IDE, by using the standard running functionalities. As usual, make sure you have Java compiling and runtime capabilities in your computer.
+## Installation and Execution
 
-If you want to run from a console, you also need to make sure you have Java compiling and runtime capabilities in your computer. Once that is done, please navigate to the folder root where the .java files are located, and execute the following commands in order:  
+System requirements : The computer must have Java compiling and runtime capabilities available.
 
+#### Compile files
 ```sh
-javac DollarRecognizer.java
+cd <folder_name>
+javac  DollarRecognizer.java
+javac  DollarRecognizerOffline.java
+```
+
+#### Run Online recognizer 
+```sh
 java DollarRecognizer
 ```
 
-# Application Features
+#### Run Offline recognizer 
+```sh
+java DollarRecognizerOffline
+```  
 
-- Fifth version adequately running on a Java environment.
-- Log File generated correctly 
-- Computed Heatmaps using GHOST toolkit. 
+# References:
 
-# Goals and Coding Features
+#### $1 Algorithm:
+Jacob O. Wobbrock, Andrew D. Wilson, and Yang Li. 2007. Gestures without libraries, toolkits or training: a $1 recognizer for user interface prototypes. In Proceedings of the 20th annual ACM symposium on User interface software and technology (UIST '07). ACM, New York, NY, USA, 159-168. https://doi.org/10.1145/1294211.1294238
 
-## Part 5
+#### Gesture Templates:
+https://depts.washington.edu/acelab/proj/dollar/index.html
 
-## a) Run an offline recognition test with $1 (using your code from Part 3) on your new dataset (from Part 4) 
-Executed. Few changes made to execute the existing code (part 3) inorder to commodate the differences in naming convention of the two datasets (part 3 and part 4) (line 119,112,115,119)
-
-## b) Output the result of the recognition tests to a log file 
-### Fixes for logfile format : Traning set order fixed  
-#### File DollarRecognizerOffline; Method generateTrainingSetResultsString() (line 31)
-Printing training set into the csv file. [ Reason for fix : Initially training set was printed by printing the template names from the same object as for complete N-best list and hence ordering was different each time since it was ordered by the score]
-
-## c) Run your data through the GHOST heatmap toolkit  
-Dataset fed into the toolkit; Settings done as required; computed heatmaps
-
-## d) Extract User Articulation Insights
-(1) : Heatmaps suggest that gestures with straight lines and a low angle number (1, 2) tend to have less variability. This is observed specially in the middle section of the straight lines. This is the case for the V, the caret, both square brackets, and the check. Whereas gestures like the triangle, which also has straight lines, does not exhibit such noticeable behaviour, and instead presents lots of variations in the angles.
-
-(2) The heatmaps also suggest that the arrow and pigtail gestures experienced a considerable variance in the way they were started and ended, in terms of the angle and point of origin/end.
+#### XML Files for Offline Recognition
+https://depts.washington.edu/acelab/proj/dollar/index.html
 
 # License
 MIT
-
