@@ -1,11 +1,12 @@
-
 ### Alexander Barquero & Anisha Wadhwani
 
-# Project #1 : Implement $1 Gesture Recognition Algorithm
+# Project #1 : Implement $1 Gesture Recognition Algorithm 
+
 #### Course : CIS6930: Human-Centered Input Recognition Algorithms (HCIRA)
 
 ## Introduction
-We present our implementation of the $1 Recognizer, based on the work done by Wobbrock, Wilson and Li.
+We present our implementation of the $1 Recognizer for 16 predefined gestures, based on the work done by Wobbrock, Wilson and Li.
+We futher extend this project. Our includes collecting a new dataset consisting of Uppercase and Lowercase Vowels (A, E, I, O, U, a, e, i, o, u)
 
 ## Problem Statement
 The goal of the project is to implement the $1 Gesture recognizer algorithm for the 16 gestures given below. Additionally the project goals comprises of the following:
@@ -41,13 +42,34 @@ Version Control : Github repository
 ## Installation and Execution
 
 System requirements : The computer must have Java compiling and runtime capabilities available.
+* Java : You can run the system from any Java enabled IDE, by using the standard running functionalities. As usual, make sure you have Java compiling and runtime capabilities in your computer.If you want to run from a console, you also need to make sure you have Java compiling and runtime capabilities in your computer. Once that is done, please navigate to the folder root where the .java files are located, and execute. 
 
+* Dataset : Download the dataset and unzip the folder in the same folder root where the .java files are located. 
+
+* config.xml : Update the folder path if you are creating new folders for dataset in the tag <templatePath> <>
+```
+<templatePath>/Project2_Resources/xml_logs</templatePath>
+<onlineRecognizerTemplatePath>/Project2_Resources/online_template</onlineRecognizerTemplatePath>
+```
+#### Note: The folder structure is as follows
+
+```sh
+|— HCIRADollarRecognizer
+	|- DollarRecognizer.java
+	|- DollarRecognizerOffline.java
+	|- config.java
+	|- Project2_Resources
+		|- xml_logs
+		|- online_template
+  
 #### Compile files
 ```sh
 cd <folder_name>
 javac  DollarRecognizer.java
 javac  DollarRecognizerOffline.java
 ```
+Note : Both files need to be compiled always since there are functions being used across the files. 
+
 
 #### Run Online recognizer 
 ```sh
