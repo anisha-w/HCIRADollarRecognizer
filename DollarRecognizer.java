@@ -543,10 +543,13 @@ class DollarRecognizer{
             homeFrame.setLocationRelativeTo(null);
 
             // Shows the unistrokes.png image in the right side of the homeFrame
-            // ImageIcon icon = new ImageIcon("unistrokes.png");
-            // JLabel imageLabel = new JLabel(icon);
-            // imageLabel.setBounds(1024/2 + 30, 180, 449, 446);
-            // homeFrame.add(imageLabel);
+            String imageName = configDoc.getElementsByTagName("referenceImage").item(0).getTextContent();
+            if(imageName!=""){
+                ImageIcon icon = new ImageIcon(imageName);
+                JLabel imageLabel = new JLabel(icon);
+                imageLabel.setBounds(1024/2 + 30, 180, 449, 446);
+                homeFrame.add(imageLabel);
+            }
 
             pleaseDrawtTextArea = new JTextArea("Please draw the following gesture according to the guide: \nThe gesture should be a unistroke \n\nNote : Upper means Uppercase and lower means Lowercase");
             pleaseDrawtTextArea.setBounds(1024/2 + 20, 50, 450, 100);
@@ -594,7 +597,8 @@ class DollarRecognizer{
         NodeList gestureList = gestureListElement.getElementsByTagName("gesture");
         for (int i =0; i < gestureList.getLength() ; i++) {
             Element nNode = (Element) gestureList.item(i);
-            gestureNames[i] = nNode.getElementsByTagName("name").item(0).getTextContent();
+            int value = Integer.valueOf(nNode.getElementsByTagName("value").item(0).getTextContent());
+            gestureNames[value] = nNode.getElementsByTagName("name").item(0).getTextContent();
         }
     }
     // Method that updates the gestureCounterLabel and the gestureNameLabel

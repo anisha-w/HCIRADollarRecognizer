@@ -7,6 +7,14 @@ import javax.xml.parsers.*;
 import org.w3c.dom.*;
 import java.awt.*;
 
+/*
+ * Keeps track of all details related to a single test
+ * Training Template Gesture List
+ * Candidate Gesture
+ * Number of Training Examples (e)
+ * Iteration number (i)
+ * Participant list 
+ */
 class CandidateCompleteResults
 {
     public UnistrokeTemplate candidateGesture;
@@ -122,7 +130,12 @@ class CandidateCompleteResults
     }
 }
 
-
+/*
+ * Encapsulates the functionality:
+ *  1. User dependent Analysis : Test choosen candidate gesture against e template samples of each gesture of the same user
+ *  2. User Independent Analysis : Test randomly choosen candidate gesture against e template samples of each gesture of the r randonly choosen users
+ * Print results in csv file along with accuracy
+ */
 public class DollarRecognizerOffline {
 
     public static Hashtable<String, Integer> gestureTypes;
@@ -132,6 +145,9 @@ public class DollarRecognizerOffline {
     static int gestureSetSize; //how many gestures in the set (10 or 16)
     static Document configDoc;
 
+    static ArrayList<Integer> userList = new ArrayList<>();
+    static int userGroupSize;
+
     // Constructor
     DollarRecognizerOffline() throws Exception{
         
@@ -139,6 +155,7 @@ public class DollarRecognizerOffline {
         configDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File("config.xml"));
         configDoc.getDocumentElement().normalize();
         gestureSetName = configDoc.getElementsByTagName("gestureSet").item(0).getTextContent();
+        userGroupSize = Integer.valueOf(configDoc.getElementsByTagName("userSize").item(0).getTextContent()); //Added user group size in config file 
 
 
         ArrayList <UnistrokeTemplate> gestureList;
@@ -149,7 +166,7 @@ public class DollarRecognizerOffline {
 
     }
 
-    // Method to populate the gesture types
+    // Method to populate the gesture types and their numerical mapping from config file
     public void populateGestureTypes(){
 
 		//Read list of gestures from config file
@@ -205,13 +222,7 @@ public class DollarRecognizerOffline {
         
         System.out.println("xmlDirPath: " + xmlDirPath);
         
-        //File xmlDir = new File(xmlDirPath.substring(0,xmlDirPath.lastIndexOf("/")) + "/Project1Part3_Resources/xml_logs");
-        //if(!xmlDir.getAbsoluteFile().exists())
-        //    xmlDir = new File(xmlDirPath + "/Project1Part3_Resources/xml_logs");
-        //System.out.println("xmlDir.getAbsoluteFile().exists(): " + xmlDir.getAbsoluteFile().exists());
-        //System.out.println("user.dir: " + System.getProperty("user.dir"));
-        
-		//read folder name from config file instead of hardcoded.
+		//read folder name from config file instead of hardcoded file names.
         File xmlDir = new File(xmlDirPath + configDoc.getDocumentElement().getElementsByTagName("templatePath").item(0).getTextContent()); //ANIHSA : MAKE A MORE GENERIC PATH
         
         System.out.println("xmlDir.getAbsolutePath: " + xmlDir.getAbsolutePath());
@@ -219,16 +230,20 @@ public class DollarRecognizerOffline {
         String dirList[] = xmlDir.list(); 
         for(int i=0;i<dirList.length;i++){
             //System.out.println("dirlist["+i+"]: "+dirList[i]); 
-            if(dirList[i].length()<=3 && !dirList[i].contains("pilot")){ //ANISHA : FIX
-                //File userDir = new File(xmlDir.getAbsoluteFile()+"/"+dirList[i]+"/medium"); //project 1 part 3 : ANISHA
+            if(dirList[i].length()<=3 && !dirList[i].contains("pilot")){ 
+                //File userDir = new File(xmlDir.getAbsoluteFile()+"/"+dirList[i]+"/medium"); //project 1 part 3 :
                 File userDir = new File(xmlDir.getAbsoluteFile()+"/"+dirList[i]);
                 String userTemplateList[] = userDir.list(); 
+                
                 System.out.println("user "+dirList[i]+" number of templates "+userTemplateList.length);
+                UnistrokeTemplate newGesture=null;
                 for(int j=0;j<userTemplateList.length;j++){
                     //System.out.println("\t"+userTemplateList[j]); 
-                    UnistrokeTemplate newGesture = createGesture(new File(userDir.getAbsoluteFile()+"/"+userTemplateList[j])); //to store in a array list of arraylists
+                    newGesture = createGesture(new File(userDir.getAbsoluteFile()+"/"+userTemplateList[j])); //to store in a array list of arraylists
                     UnistrokeTemplates.add(newGesture);
                 }
+                if(newGesture!=null)
+                    userList.add(newGesture.user); //adding user names(particpant ID) in list
             }
         }
         System.out.println("UnistrokeTemplates.size(): " + UnistrokeTemplates.size());
@@ -246,7 +261,7 @@ public class DollarRecognizerOffline {
         return filteredGestureList;
     }
 
-    // Method to filter the gesture list based on the iteration
+    // Method to filter the gesture list based on the sample number
     public static ArrayList <UnistrokeTemplate> filterGestureListByIteration(ArrayList <UnistrokeTemplate> gestureList, int iteration){
         ArrayList <UnistrokeTemplate> filteredGestureList = new ArrayList<>();
         for(int i=0;i<gestureList.size();i++){
@@ -274,12 +289,12 @@ public class DollarRecognizerOffline {
         ArrayList <CandidateCompleteResults> resultLog = new ArrayList<>();
         int totalRuns = 0;
         // For each user
-        for(int u=1;u<=6;u++){
-            ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, u); // user numbers from 2 to 11; part 4 user number starts from 1
+        for(int u=0;u<userGroupSize;u++){
+            ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, userList.get(u)); // Taking user number from a list instead of having consecutive user numbers
             // For each example
             for(int e=1;e<=9;e++){
                 // Repeat X times
-                for(int i=1;i<=100;i++){ //RandomIterator
+                for(int i=1;i<=10;i++){ //RandomIterator
                     ArrayList <UnistrokeTemplate> candidateGestures = new ArrayList<>();
                     ArrayList <UnistrokeTemplate> selectedTemplateGestures = new ArrayList<>();
                     // For each gesture type
@@ -294,12 +309,10 @@ public class DollarRecognizerOffline {
                         }
                         for(int j=0;j<randomGestureIndices.size();j++){
                             // Gets the gesture that corresponds to the random index (index=iteration) in the type/user filtered gesture list
-                            
-                            //debugging :ANISHA 
                             try{
                                 selectedTemplateGestures.add(typeAndUserGestureList.get(randomGestureIndices.get(j)));
                             }catch(Exception ie){
-                                System.out.println("u : "+u + 
+                                System.out.println("u : "+u+" - "+userList.get(u) + 
                                                     " gesturelistsize "+gestureList.size()+
                                                     " userGestureListsize "+userGestureList.size()+
                                                     "\ne : "+e+
@@ -353,7 +366,7 @@ public class DollarRecognizerOffline {
             }
         }
         
-        
+        //Printing to csv file
         System.out.println("Total runs: " + totalRuns);
         String fileName = "1dollarLog_UserDependent_" + System.currentTimeMillis() + ".csv";
         File file = new File(fileName);
@@ -400,7 +413,7 @@ public class DollarRecognizerOffline {
         localAverageAccuracy.put(currentUser, userAccuracy);
 
         bw.newLine();
-
+        //Print Accuracy
         for (Map.Entry<Integer, Double> entry : localAverageAccuracy.entrySet()) {
             bw.write("User" + entry.getKey() + "AvgAccuracy," + entry.getValue());
             bw.newLine();
@@ -418,7 +431,7 @@ public class DollarRecognizerOffline {
         ArrayList <CandidateCompleteResults> resultLog = new ArrayList<>();
         int totalRuns = 0;
         // For each user
-        for(int u=1;u<=5;u++){
+        for(int u=0;u<userGroupSize-1;u++){
             //ArrayList <UnistrokeTemplate> userGestureList = filterGestureListByUser(gestureList, u); // Proj. 2, user starts with 1
             // Repeat x1 times
 
@@ -428,9 +441,9 @@ public class DollarRecognizerOffline {
 
                 //randomly select u users/participants
                 while(randomUserIndices.size()<u){
-                    int randomUserIndex = (int)(Math.random()*6) + 1;
-                    if(!randomUserIndices.contains(randomUserIndex)){
-                        randomUserIndices.add(randomUserIndex);
+                    int randomUserIndex = (int)(Math.random()*userGroupSize);
+                    if(!randomUserIndices.contains(userList.get(randomUserIndex))){
+                        randomUserIndices.add(userList.get(randomUserIndex));
                     }
                 }
 
@@ -438,9 +451,9 @@ public class DollarRecognizerOffline {
                 //candiate user
                 ArrayList <UnistrokeTemplate> candidateUserGestures = null;
                 while (candidateUserGestures == null) {
-                    int candidateUserIndex = (int)(Math.random()*6)+1;
-                    if(!randomUserIndices.contains(candidateUserIndex)){
-                        candidateUserGestures = filterGestureListByUser(gestureList, candidateUserIndex);
+                    int candidateUserIndex = (int)(Math.random()*userGroupSize);
+                    if(!randomUserIndices.contains(userList.get(candidateUserIndex))){
+                        candidateUserGestures = filterGestureListByUser(gestureList, userList.get(candidateUserIndex));
                     }
                 }
                 // CandidateGestures + 1 candidate gesture, total of 16

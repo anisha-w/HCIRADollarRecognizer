@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-   <templatePath>/Project2_Resources/xml_logs</templatePath>
-   <onlineRecognizerTemplatePath>/Project2_Resources/online_template</onlineRecognizerTemplatePath>
+   <templatePath>/OfflineResources/xml_logs</templatePath>
+   <onlineRecognizerTemplatePath>/OnlineResources/online_template</onlineRecognizerTemplatePath>
    <storeTemplatePath>/templateData</storeTemplatePath>
-   <gestureSet>gestureSetP2</gestureSet>
+   <gestureSet>gestureSetP1</gestureSet>
+   <userSize>10</userSize>
+   <referenceImage>unistrokes.png</referenceImage>
    <gestureSetP1Size>16</gestureSetP1Size>
    <gestureSetP1>
       <gesture>
