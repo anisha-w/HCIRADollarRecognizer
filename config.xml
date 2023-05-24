@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-   <templatePath>/OfflineResources/xml_logs</templatePath>
-   <onlineRecognizerTemplatePath>/OnlineResources/online_template</onlineRecognizerTemplatePath>
-   <storeTemplatePath>/templateData</storeTemplatePath>
-   <gestureSet>gestureSetP1</gestureSet>
-   <userSize>10</userSize>
-   <referenceImage>unistrokes.png</referenceImage>
+   <templatePath>/OfflineResources/xml_logs</templatePath> <!-- folder path for Dataset for offline recognition --> 
+   <onlineRecognizerTemplatePath>/OnlineResources/online_template</onlineRecognizerTemplatePath> <!--folder path for the online recognition templates-->
+
+   <storeTemplatePath>/templateData</storeTemplatePath> <!--folder name where data collected (xml files) is stored -->
+   <gestureSet>gestureSetP1</gestureSet> <!-- Name of the ACTIVE gesture set; Is user-defined; no spaces -->
+   <userSize>10</userSize> <!-- Number of users taken for offline recognition -->
+   <referenceImage>unistrokes.png</referenceImage> <!-- path of the reference image for data collection -->
+
+   <!-- DEFAULT GESTURE SET -->
+
    <gestureSetP1Size>16</gestureSetP1Size>
    <gestureSetP1>
       <gesture>
@@ -89,6 +93,8 @@
          <value>15</value>
       </gesture>
    </gestureSetP1>
+
+   <!-- GESTURE SET 2 -->
    <gestureSetP2Size>10</gestureSetP2Size>
    <gestureSetP2>
       <gesture>
