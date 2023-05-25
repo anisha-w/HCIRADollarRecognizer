@@ -14,7 +14,8 @@ The goal of Project #1 is to implement the $1 Gesture recognizer algorithm for t
 - Developing a module to collect data from users for offline analysis. 
 - Measure performance of the algorithm based on the recognition accuracy
  
-	<img src="https://github.com/alebar000/HCIRADollarRecognizer/assets/36306448/b014c199-89ae-43b4-84b8-42e223fb69d4" width="250" height="250" > <br>      
+   	<img width="250" alt="image" src="https://github.com/anisha-w/HCIRADollarRecognizer/assets/36306448/80a046c0-6071-4be8-a43c-ef6f7d5db1a1">
+
 
 Project #2 (Extension of Project1) Goals:
 - Modify the system to add a different set of gestures (Upper case and Lower Case vowels) 
@@ -32,8 +33,7 @@ The project #1 has been divided into 5 milestones to build the complete system. 
 ## Features of the system
 
 #### GUI
-<img width="852" alt="image" src="https://github.com/alebar000/HCIRADollarRecognizer/assets/36306448/1f0c25db-740c-48f0-8107-d06775c8ea33">
-
+<img width="782" alt="image" src="https://github.com/anisha-w/HCIRADollarRecognizer/assets/36306448/f26a5f42-a60e-4957-ae6c-6abb6cda50ef">
 
 #### Features of the Online/Live Recognizer GUI system: 
 - The system identifies specified unistroke gestures.
@@ -145,12 +145,15 @@ java DollarRecognizerOffline
 
 ## Implementation
 #### System Flow chart
-<img width="625" alt="image" src="https://github.com/alebar000/HCIRADollarRecognizer/assets/36306448/cce9dd87-2e2c-4cc9-b8f1-6126e9bd4076">
+<img width="610" alt="image" src="https://github.com/anisha-w/HCIRADollarRecognizer/assets/36306448/286715be-d274-4cf2-b584-417e0b880100">
+
 
 ## Analysis and Results 
 
 #### Offline Recognition Test Recognition Accuracy for the 16 pre-defined gestures
-![image](https://github.com/alebar000/HCIRADollarRecognizer/assets/36306448/e8cd4b6e-9df0-435d-824d-d3bbc3c0a9aa)
+
+<img width="500" alt="image" src="https://github.com/anisha-w/HCIRADollarRecognizer/assets/36306448/60d22f67-0543-4168-af23-0ab0bc673e98">
+
 
 
 # References:
