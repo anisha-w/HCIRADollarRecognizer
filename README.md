@@ -5,8 +5,7 @@
 The primary objective of this project revolved around the development of a GUI tailored for the recognition of 16 pre-determined unistroke gestures using the $1 recognition algorithm. Additionally, we expanded the project to enable users to incorporate and evaluate the system with distinct sets of gestures. Here our new dataset consist of Uppercase and Lowercase Vowels (A, E, I, O, U, a, e, i, o, u)
 
 #### $1 Algorithm Reference : 
-Jacob O. Wobbrock, Andrew D. Wilson, and Yang Li. 2007. Gestures without libraries, toolkits or training: a $1 recognizer for user interface prototypes. In Proceedings of the 20th annual ACM symposium on User interface software and technology (UIST '07). ACM, New York, NY, USA, 159-168.
-
+[Jacob O. Wobbrock, Andrew D. Wilson, and Yang Li. 2007. Gestures without libraries, toolkits or training: a $1 recognizer for user interface prototypes. In Proceedings of the 20th annual ACM symposium on User interface software and technology (UIST '07). ACM, New York, NY, USA, 159-168.](https://dl.acm.org/doi/abs/10.1145/1294211.1294238?casa_token=5FbPgYWhczkAAAAA:4i8ClOkuH7NJi2HkSZyMKIVGQPU7wq1l-hK2YiOxAsKQh1fMx4WqrydSZqOj2aUGWhr7ApxtG-uZ)
 
 ## Problem Statement
 The goal of Project #1 is to implement the $1 Gesture recognizer algorithm for the 16 gestures given below. Additionally the project goals comprises of the following:
@@ -32,7 +31,10 @@ The project #1 has been divided into 5 milestones to build the complete system. 
 
 ## Features of the system
 
-#### GUI
+https://github.com/anisha-w/HCIRADollarRecognizer/assets/36306448/3759e308-75ce-4d43-b1f8-fb06c982da08
+
+#### Snapshots of GUI
+
 <img width="782" alt="image" src="https://github.com/anisha-w/HCIRADollarRecognizer/assets/36306448/f26a5f42-a60e-4957-ae6c-6abb6cda50ef">
 
 #### Features of the Online/Live Recognizer GUI system: 
@@ -150,10 +152,24 @@ java DollarRecognizerOffline
 
 ## Analysis and Results 
 
-#### Offline Recognition Test Recognition Accuracy for the 16 pre-defined gestures
+#### Offline Recognition Test - Recognition Accuracy using User Dependent Analysis for the 16 pre-defined gestures
 
-<img width="500" alt="image" src="https://github.com/anisha-w/HCIRADollarRecognizer/assets/36306448/60d22f67-0543-4168-af23-0ab0bc673e98">
+Part 3 : Refers to the performance for the data collected by authors. 
+Part 5 : Refers to the performance for the data collected by us
 
+<img width="380" alt="accuracygraph" src="https://github.com/anisha-w/HCIRADollarRecognizer/assets/36306448/60d22f67-0543-4168-af23-0ab0bc673e98">
+<img width="300" alt="Heatmap" src="https://github.com/anisha-w/HCIRADollarRecognizer/assets/36306448/44da3000-831e-4c68-aca2-6999fd45ca8b">
+
+
+
+Data collected by authors have a uniform drawing speed whereas the users recruited by us did not maintain a uniform speed which is why the samples had lot of variability 
+
+####  Offline Recognition Test - Recognition Accuracy using User Independent Analysis for the 10 gestures used for Project2
+
+<img width="383" alt="image" src="https://github.com/anisha-w/HCIRADollarRecognizer/assets/36306448/4cf90116-b1ee-4658-9c4b-6e10314b1dc4">
+<img width="301" alt="image" src="https://github.com/anisha-w/HCIRADollarRecognizer/assets/36306448/c2a79690-e410-4302-bc1c-63f6da34538c">
+
+The recognition accuracy is much lower since the gestures selected are very similar like Upper O and Lower O 
 
 
 # References:
